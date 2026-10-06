@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Brodin\'s Prayerbook</string>
+
+    <!-- Darklands palette: black ground, gold leaf, vermilion, lapis, bright vellum -->
+    <color name="parchment">#120B07</color>
+    <color name="parchment_light">#20140C</color>
+    <color name="parchment_warm">#8E1216</color>
+    <color name="amber">#F5B62E</color>
+    <color name="amber_dark">#C98A1B</color>
+    <color name="amber_glow">#FFD15C</color>
+    <color name="crimson">#C4161C</color>
+    <color name="crimson_light">#F0483A</color>
+    <color name="lapis">#4DB5FF</color>
+    <color name="text_light">#FFF4DC</color>
+    <color name="text_warm">#F3E2BF</color>
+    <color name="text_dim">#C2A97E</color>
+    <color name="hint">#7F6B49</color>
+    <color name="ink_dark">#070403</color>
+    <color name="divider">#8A5A1E</color>
+    <color name="input_bg">#050302</color>
+    <color name="input_border">#B8862B</color>
+    <color name="amrap_gold">#FFD15C</color>
+    <color name="logo_black">#101315</color>
+
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/parchment</item>
+        <item name="colorAccent">@color/crimson</item>
+    </style>
+</resources>

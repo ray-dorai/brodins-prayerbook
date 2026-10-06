@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/parchment">
+
+    <!-- Title block — like a Darklands page header -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        android:background="@color/ink_dark">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/brodin_mark"
+            android:scaleType="fitCenter"
+            android:contentDescription="Brodin" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Brodin's Prayerbook"
+                android:fontFamily="@font/unifraktur"
+                android:textSize="28sp"
+                android:textColor="@color/amber"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/dateHeader"
+                android:clickable="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:fontFamily="@font/crimson_text"
+                android:textColor="@color/lapis"
+                android:gravity="center"
+                android:paddingTop="2dp"
+                android:text="MONDAY  2026-02-16" />
+        </LinearLayout>
+
+        <!-- Settings; same width as the logo so the title stays centred -->
+        <FrameLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp">
+
+            <ImageView
+                android:id="@+id/btnSettings"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="center"
+                android:padding="9dp"
+                android:src="@drawable/ic_settings"
+                android:tint="@color/icon_tint"
+                android:background="@drawable/btn_icon"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Settings" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Thin ornamental divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="@color/amber" />
+
+    <!-- Program & day selectors -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:background="@color/parchment_light">
+
+        <Spinner
+            android:id="@+id/programSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/input_box"
+            android:popupBackground="@color/parchment_light"
+            android:paddingHorizontal="8dp" />
+
+        <Spinner
+            android:id="@+id/daySpinner"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/input_box"
+            android:popupBackground="@color/parchment_light"
+            android:paddingHorizontal="8dp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/amber_dark" />
+
+    <!-- Column headers: PLAN | ACTUAL -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:background="@color/parchment_warm">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="The Prescription"
+            android:textSize="15sp"
+            android:fontFamily="@font/crimson_text"
+            android:textColor="@color/amber_glow"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="The Offering"
+            android:textSize="15sp"
+            android:fontFamily="@font/crimson_text"
+            android:textColor="@color/amber_glow"
+            android:textStyle="bold"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/amber_dark" />
+
+    <!-- Exercise list — the sacred scrolls -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/exerciseContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp" />
+    </ScrollView>
+
+    <!-- Bottom bar — dark, weighty -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/amber" />
+
+    <!-- Rest timer: tap to start or stop -->
+    <TextView
+        android:id="@+id/restTimer"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/crimson_text"
+        android:textColor="@color/text_dim"
+        android:background="@drawable/rest_strip"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/amber_dark" />
+
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center"
+        android:background="@color/ink_dark">
+
+        <Button
+            android:id="@+id/btnFinish"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Finish Session"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/btn_text"
+            android:fontFamily="@font/crimson_text"
+            android:background="@drawable/btn_medieval"
+            android:paddingHorizontal="14dp"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnExport"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Export"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/btn_text"
+            android:fontFamily="@font/crimson_text"
+            android:background="@drawable/btn_medieval"
+            android:paddingHorizontal="16dp"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnManage"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Manage"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/btn_text"
+            android:fontFamily="@font/crimson_text"
+            android:background="@drawable/btn_medieval"
+            android:paddingHorizontal="16dp" />
+    </LinearLayout>
+</LinearLayout>

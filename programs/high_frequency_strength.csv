@@ -1,0 +1,175 @@
+week,day,day_name,exercise,sets,reps,weight,rest,note
+1,1,Mon — Heavy bench + light squat,Bench Press,1,1,77.5% 1RM,120,start
+1,1,Mon — Heavy bench + light squat,Bench Press,3,1,,120,ramp
+1,1,Mon — Heavy bench + light squat,Bench Press,1,1,,120,"top, RPE 7–8"
+1,1,Mon — Heavy bench + light squat,Bench Press,3,3,77.5% 1RM,120,
+1,1,Mon — Heavy bench + light squat,Squat,3,5,60% 1RM,120,to 65%
+1,1,Mon — Heavy bench + light squat,KB Strict Press (1-arm),3,8–12/side,35,60,
+1,2,Tue — Heavy squat + bench volume,Squat,1,1,77.5% 1RM,120,start
+1,2,Tue — Heavy squat + bench volume,Squat,3,1,,120,ramp
+1,2,Tue — Heavy squat + bench volume,Squat,1,1,,120,"top, RPE 7–8"
+1,2,Tue — Heavy squat + bench volume,Squat,3,3,77.5% 1RM,120,
+1,2,Tue — Heavy squat + bench volume,Bench Press,4,4,70% 1RM,120,
+1,2,Tue — Heavy squat + bench volume,KB Row (1-arm),3,10–15/side,35,60,
+1,2,Tue — Heavy squat + bench volume,KB Curl,2,10–15/side,35,60,
+1,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,77.5% 1RM,120,start
+1,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,1,,120,ramp
+1,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,,120,"top, RPE 7–8"
+1,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,3,72.5% 1RM,120,
+1,3,Wed — Heavy trap-bar + light bench,Bench Press,3,5,60% 1RM,120,
+1,3,Wed — Heavy trap-bar + light bench,KB High Pull,3,10–15/side,35,60,
+1,3,Wed — Heavy trap-bar + light bench,KB Overhead Triceps Extension,2,10–15,35,60,
+1,4,Thu — Bench volume + squat volume,Bench Press,4,3,75% 1RM,120,
+1,4,Thu — Bench volume + squat volume,Squat,3,4,70% 1RM,120,
+1,4,Thu — Bench volume + squat volume,KB Rear-Delt Row,3,12–20/side,35,60,
+1,5,Fri — Trap-bar volume + bench specificity,Trap Bar Deadlift,3,4,67.5% 1RM,120,
+1,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,75% 1RM,120,start
+1,5,Fri — Trap-bar volume + bench specificity,Bench Press,2,1,,120,ramp
+1,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,,120,"top, RPE 7"
+1,5,Fri — Trap-bar volume + bench specificity,Bench Press,3,3,72.5% 1RM,120,
+1,5,Fri — Trap-bar volume + bench specificity,Goblet Split Squat,2,10–15/leg,35,60,
+1,5,Fri — Trap-bar volume + bench specificity,KB Swing,2,15–25,35,60,optional
+2,1,Mon — Heavy bench + light squat,Bench Press,1,1,77.5% 1RM,120,start
+2,1,Mon — Heavy bench + light squat,Bench Press,3,1,,120,ramp
+2,1,Mon — Heavy bench + light squat,Bench Press,1,1,,120,"top, RPE 7–8"
+2,1,Mon — Heavy bench + light squat,Bench Press,3,3,80% 1RM,120,
+2,1,Mon — Heavy bench + light squat,Squat,3,5,60% 1RM,120,to 65%
+2,1,Mon — Heavy bench + light squat,KB Strict Press (1-arm),3,8–12/side,35,60,
+2,2,Tue — Heavy squat + bench volume,Squat,1,1,77.5% 1RM,120,start
+2,2,Tue — Heavy squat + bench volume,Squat,3,1,,120,ramp
+2,2,Tue — Heavy squat + bench volume,Squat,1,1,,120,"top, RPE 7–8"
+2,2,Tue — Heavy squat + bench volume,Squat,3,3,80% 1RM,120,
+2,2,Tue — Heavy squat + bench volume,Bench Press,4,4,72.5% 1RM,120,
+2,2,Tue — Heavy squat + bench volume,KB Row (1-arm),3,10–15/side,35,60,
+2,2,Tue — Heavy squat + bench volume,KB Curl,2,10–15/side,35,60,
+2,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,77.5% 1RM,120,start
+2,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,1,,120,ramp
+2,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,,120,"top, RPE 7–8"
+2,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,3,75% 1RM,120,
+2,3,Wed — Heavy trap-bar + light bench,Bench Press,3,5,62.5% 1RM,120,
+2,3,Wed — Heavy trap-bar + light bench,KB High Pull,3,10–15/side,35,60,
+2,3,Wed — Heavy trap-bar + light bench,KB Overhead Triceps Extension,2,10–15,35,60,
+2,4,Thu — Bench volume + squat volume,Bench Press,4,3,77.5% 1RM,120,
+2,4,Thu — Bench volume + squat volume,Squat,3,4,72.5% 1RM,120,
+2,4,Thu — Bench volume + squat volume,KB Rear-Delt Row,3,12–20/side,35,60,
+2,5,Fri — Trap-bar volume + bench specificity,Trap Bar Deadlift,3,4,70% 1RM,120,
+2,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,75% 1RM,120,start
+2,5,Fri — Trap-bar volume + bench specificity,Bench Press,2,1,,120,ramp
+2,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,,120,"top, RPE 7"
+2,5,Fri — Trap-bar volume + bench specificity,Bench Press,3,3,75% 1RM,120,
+2,5,Fri — Trap-bar volume + bench specificity,Goblet Split Squat,2,10–15/leg,35,60,
+2,5,Fri — Trap-bar volume + bench specificity,KB Swing,2,15–25,35,60,optional
+3,1,Mon — Heavy bench + light squat,Bench Press,1,1,77.5% 1RM,120,start
+3,1,Mon — Heavy bench + light squat,Bench Press,3,1,,120,ramp
+3,1,Mon — Heavy bench + light squat,Bench Press,1,1,,120,"top, RPE 7–8"
+3,1,Mon — Heavy bench + light squat,Bench Press,3,3,82.5% 1RM,120,
+3,1,Mon — Heavy bench + light squat,Squat,3,5,60% 1RM,120,to 65%
+3,1,Mon — Heavy bench + light squat,KB Strict Press (1-arm),3,8–12/side,35,60,
+3,2,Tue — Heavy squat + bench volume,Squat,1,1,77.5% 1RM,120,start
+3,2,Tue — Heavy squat + bench volume,Squat,3,1,,120,ramp
+3,2,Tue — Heavy squat + bench volume,Squat,1,1,,120,"top, RPE 7–8"
+3,2,Tue — Heavy squat + bench volume,Squat,3,3,82.5% 1RM,120,
+3,2,Tue — Heavy squat + bench volume,Bench Press,4,4,72.5% 1RM,120,
+3,2,Tue — Heavy squat + bench volume,KB Row (1-arm),3,10–15/side,35,60,
+3,2,Tue — Heavy squat + bench volume,KB Curl,2,10–15/side,35,60,
+3,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,77.5% 1RM,120,start
+3,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,1,,120,ramp
+3,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,,120,"top, RPE 7–8"
+3,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,3,77.5% 1RM,120,
+3,3,Wed — Heavy trap-bar + light bench,Bench Press,3,5,62.5% 1RM,120,
+3,3,Wed — Heavy trap-bar + light bench,KB High Pull,3,10–15/side,35,60,
+3,3,Wed — Heavy trap-bar + light bench,KB Overhead Triceps Extension,2,10–15,35,60,
+3,4,Thu — Bench volume + squat volume,Bench Press,4,3,80% 1RM,120,
+3,4,Thu — Bench volume + squat volume,Squat,3,4,72.5% 1RM,120,
+3,4,Thu — Bench volume + squat volume,KB Rear-Delt Row,3,12–20/side,35,60,
+3,5,Fri — Trap-bar volume + bench specificity,Trap Bar Deadlift,3,4,70% 1RM,120,
+3,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,75% 1RM,120,start
+3,5,Fri — Trap-bar volume + bench specificity,Bench Press,2,1,,120,ramp
+3,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,,120,"top, RPE 7"
+3,5,Fri — Trap-bar volume + bench specificity,Bench Press,3,3,77.5% 1RM,120,
+3,5,Fri — Trap-bar volume + bench specificity,Goblet Split Squat,2,10–15/leg,35,60,
+3,5,Fri — Trap-bar volume + bench specificity,KB Swing,2,15–25,35,60,optional
+4,1,Mon — Heavy bench + light squat,Bench Press,1,1,77.5% 1RM,120,start
+4,1,Mon — Heavy bench + light squat,Bench Press,3,1,,120,ramp
+4,1,Mon — Heavy bench + light squat,Bench Press,1,1,,120,"top, RPE 7–8"
+4,1,Mon — Heavy bench + light squat,Bench Press,3,3,72.5% 1RM,120,
+4,1,Mon — Heavy bench + light squat,Squat,3,5,60% 1RM,120,to 65%
+4,1,Mon — Heavy bench + light squat,KB Strict Press (1-arm),3,8–12/side,35,60,
+4,2,Tue — Heavy squat + bench volume,Squat,1,1,77.5% 1RM,120,start
+4,2,Tue — Heavy squat + bench volume,Squat,3,1,,120,ramp
+4,2,Tue — Heavy squat + bench volume,Squat,1,1,,120,"top, RPE 7–8"
+4,2,Tue — Heavy squat + bench volume,Squat,3,3,72.5% 1RM,120,
+4,2,Tue — Heavy squat + bench volume,Bench Press,4,4,65% 1RM,120,
+4,2,Tue — Heavy squat + bench volume,KB Row (1-arm),3,10–15/side,35,60,
+4,2,Tue — Heavy squat + bench volume,KB Curl,2,10–15/side,35,60,
+4,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,77.5% 1RM,120,start
+4,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,1,,120,ramp
+4,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,,120,"top, RPE 7–8"
+4,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,3,67.5% 1RM,120,
+4,3,Wed — Heavy trap-bar + light bench,Bench Press,3,5,55% 1RM,120,
+4,3,Wed — Heavy trap-bar + light bench,KB High Pull,3,10–15/side,35,60,
+4,3,Wed — Heavy trap-bar + light bench,KB Overhead Triceps Extension,2,10–15,35,60,
+4,4,Thu — Bench volume + squat volume,Bench Press,4,3,70% 1RM,120,
+4,4,Thu — Bench volume + squat volume,Squat,3,4,65% 1RM,120,
+4,4,Thu — Bench volume + squat volume,KB Rear-Delt Row,3,12–20/side,35,60,
+4,5,Fri — Trap-bar volume + bench specificity,Trap Bar Deadlift,3,4,62.5% 1RM,120,
+4,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,75% 1RM,120,start
+4,5,Fri — Trap-bar volume + bench specificity,Bench Press,2,1,,120,ramp
+4,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,,120,"top, RPE 7"
+4,5,Fri — Trap-bar volume + bench specificity,Bench Press,3,3,67.5% 1RM,120,
+4,5,Fri — Trap-bar volume + bench specificity,Goblet Split Squat,2,10–15/leg,35,60,
+4,5,Fri — Trap-bar volume + bench specificity,KB Swing,2,15–25,35,60,optional
+5,1,Mon — Heavy bench + light squat,Bench Press,1,1,77.5% 1RM,120,start
+5,1,Mon — Heavy bench + light squat,Bench Press,3,1,,120,ramp
+5,1,Mon — Heavy bench + light squat,Bench Press,1,1,,120,"top, RPE 7–8"
+5,1,Mon — Heavy bench + light squat,Bench Press,3,3,82.5% 1RM,120,
+5,1,Mon — Heavy bench + light squat,Squat,3,5,60% 1RM,120,to 65%
+5,1,Mon — Heavy bench + light squat,KB Strict Press (1-arm),3,8–12/side,35,60,
+5,2,Tue — Heavy squat + bench volume,Squat,1,1,77.5% 1RM,120,start
+5,2,Tue — Heavy squat + bench volume,Squat,3,1,,120,ramp
+5,2,Tue — Heavy squat + bench volume,Squat,1,1,,120,"top, RPE 7–8"
+5,2,Tue — Heavy squat + bench volume,Squat,3,3,82.5% 1RM,120,
+5,2,Tue — Heavy squat + bench volume,Bench Press,4,4,70% 1RM,120,
+5,2,Tue — Heavy squat + bench volume,KB Row (1-arm),3,10–15/side,35,60,
+5,2,Tue — Heavy squat + bench volume,KB Curl,2,10–15/side,35,60,
+5,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,77.5% 1RM,120,start
+5,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,1,,120,ramp
+5,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,1,1,,120,"top, RPE 7–8"
+5,3,Wed — Heavy trap-bar + light bench,Trap Bar Deadlift,3,3,77.5% 1RM,120,
+5,3,Wed — Heavy trap-bar + light bench,Bench Press,3,5,60% 1RM,120,
+5,3,Wed — Heavy trap-bar + light bench,KB High Pull,3,10–15/side,35,60,
+5,3,Wed — Heavy trap-bar + light bench,KB Overhead Triceps Extension,2,10–15,35,60,
+5,4,Thu — Bench volume + squat volume,Bench Press,4,3,80% 1RM,120,
+5,4,Thu — Bench volume + squat volume,Squat,3,4,70% 1RM,120,
+5,4,Thu — Bench volume + squat volume,KB Rear-Delt Row,3,12–20/side,35,60,
+5,5,Fri — Trap-bar volume + bench specificity,Trap Bar Deadlift,3,4,70% 1RM,120,
+5,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,75% 1RM,120,start
+5,5,Fri — Trap-bar volume + bench specificity,Bench Press,2,1,,120,ramp
+5,5,Fri — Trap-bar volume + bench specificity,Bench Press,1,1,,120,"top, RPE 7"
+5,5,Fri — Trap-bar volume + bench specificity,Bench Press,3,3,77.5% 1RM,120,
+5,5,Fri — Trap-bar volume + bench specificity,Goblet Split Squat,2,10–15/leg,35,60,
+5,5,Fri — Trap-bar volume + bench specificity,KB Swing,2,15–25,35,60,optional
+6,1,Mon — Bench realization,Bench Press,2,1,,180,ramp
+6,1,Mon — Bench realization,Bench Press,1,1,,180,RPE 8
+6,1,Mon — Bench realization,Bench Press,1,1,,180,"max test, optional"
+6,1,Mon — Bench realization,Squat,2,5,60% 1RM,120,
+6,1,Mon — Bench realization,KB Strict Press (1-arm),3,8–12/side,35,60,
+6,2,Tue — Recovery technique,Bench Press,3,5,60% 1RM,120,to 62.5%
+6,2,Tue — Recovery technique,Squat,2,3,65% 1RM,120,
+6,2,Tue — Recovery technique,KB Row (1-arm),3,10–15/side,35,60,
+6,2,Tue — Recovery technique,KB Curl,2,10–15/side,35,60,
+6,3,Wed — Squat realization,Squat,2,1,,180,ramp
+6,3,Wed — Squat realization,Squat,1,1,,180,RPE 8
+6,3,Wed — Squat realization,Squat,1,1,,180,"max test, optional"
+6,3,Wed — Squat realization,Bench Press,3,5,55% 1RM,120,
+6,3,Wed — Squat realization,KB High Pull,3,10–15/side,35,60,
+6,3,Wed — Squat realization,KB Overhead Triceps Extension,2,10–15,35,60,
+6,4,Thu — Primer,Bench Press,3,3,60% 1RM,120,
+6,4,Thu — Primer,Trap Bar Deadlift,2,3,60% 1RM,120,
+6,4,Thu — Primer,KB Rear-Delt Row,3,12–20/side,35,60,
+6,5,Fri — Trap-bar realization,Trap Bar Deadlift,2,1,,180,ramp
+6,5,Fri — Trap-bar realization,Trap Bar Deadlift,1,1,,180,RPE 8
+6,5,Fri — Trap-bar realization,Trap Bar Deadlift,1,1,,180,"max test, optional"
+6,5,Fri — Trap-bar realization,Bench Press,2,5,55% 1RM,120,to 60%
+6,5,Fri — Trap-bar realization,Goblet Split Squat,2,10–15/leg,35,60,
+6,5,Fri — Trap-bar realization,KB Swing,2,15–25,35,60,optional

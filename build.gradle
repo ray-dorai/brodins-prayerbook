@@ -1,0 +1,11 @@
+buildscript {
+    dependencies {
+        // AGP 9 has Kotlin built in; this pins which Kotlin version it uses
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.20'
+    }
+}
+
+plugins {
+    id 'com.android.application' version '9.4.1' apply false
+    id 'com.google.devtools.ksp' version '2.3.12' apply false
+}

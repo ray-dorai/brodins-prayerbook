@@ -1,0 +1,16 @@
+# Build output and tool caches
+build/
+.gradle/
+.kotlin/
+
+# Machine-specific: SDK location, IDE settings
+local.properties
+.idea/
+*.iml
+
+# Signing keys and phone database copies never belong in the repo
+*.jks
+*.keystore
+*.db
+*.db-wal
+*.db-shm

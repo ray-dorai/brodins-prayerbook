@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="3dp">
+
+    <!-- Left: the prescription -->
+    <TextView
+        android:id="@+id/plannedLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fontFamily="@font/crimson_text"
+        android:textSize="17sp"
+        android:textColor="@color/text_light"
+        android:paddingEnd="6dp"
+        android:text="145 × 3" />
+
+    <!-- Right: the offering. Ghost text in weight and reps is the prescription. -->
+    <EditText
+        android:id="@+id/inputWeight"
+        android:layout_width="56dp"
+        android:layout_height="40dp"
+        android:inputType="numberDecimal"
+        android:hint="wt"
+        android:textSize="16sp"
+        android:fontFamily="@font/crimson_text"
+        android:textColor="@color/text_light"
+        android:textColorHint="@color/hint"
+        android:gravity="center"
+        android:background="@drawable/input_box"
+        android:padding="2dp"
+        android:importantForAutofill="no" />
+
+    <EditText
+        android:id="@+id/inputReps"
+        android:layout_width="42dp"
+        android:layout_height="40dp"
+        android:inputType="number"
+        android:hint="rep"
+        android:textSize="16sp"
+        android:fontFamily="@font/crimson_text"
+        android:textColor="@color/text_light"
+        android:textColorHint="@color/hint"
+        android:gravity="center"
+        android:background="@drawable/input_box"
+        android:padding="2dp"
+        android:layout_marginStart="5dp"
+        android:importantForAutofill="no" />
+
+    <EditText
+        android:id="@+id/inputRpe"
+        android:layout_width="42dp"
+        android:layout_height="40dp"
+        android:inputType="numberDecimal"
+        android:hint="rpe"
+        android:textSize="16sp"
+        android:fontFamily="@font/crimson_text"
+        android:textColor="@color/text_light"
+        android:textColorHint="@color/hint"
+        android:gravity="center"
+        android:background="@drawable/input_box"
+        android:padding="2dp"
+        android:layout_marginStart="5dp"
+        android:importantForAutofill="no" />
+
+    <!-- Note for this set; filled gold when one is written -->
+    <TextView
+        android:id="@+id/btnNote"
+        android:layout_width="34dp"
+        android:layout_height="40dp"
+        android:text="✠"
+        android:textSize="16sp"
+        android:textColor="@color/set_icon"
+        android:gravity="center"
+        android:background="@drawable/btn_set"
+        android:layout_marginStart="5dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="Note" />
+
+    <!-- The noose: commit this set. Filled gold once the set is logged. -->
+    <ImageView
+        android:id="@+id/btnSaveSet"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="7dp"
+        android:src="@drawable/ic_noose"
+        android:tint="@color/set_icon"
+        android:background="@drawable/btn_set"
+        android:layout_marginStart="5dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="Save set" />
+</LinearLayout>
