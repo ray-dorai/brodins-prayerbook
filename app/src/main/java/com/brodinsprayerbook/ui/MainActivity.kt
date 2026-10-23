@@ -79,7 +79,7 @@ class MainActivity : AppCompatActivity() {
         }
         FormulaEngine.increment = prefs.getFloat("increment", 5f).toDouble()
 
-        setupProgramSpinner()
+        showProgram()
 
         findViewById<Button>(R.id.btnFinish).setOnClickListener { finishSession() }
         findViewById<View>(R.id.btnSettings).setOnClickListener { showSettings() }
@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
     private fun pickDate() {
         DatePickerDialog(this, { _, y, m, d ->
             viewDate = LocalDate.of(y, m + 1, d)
-            setupProgramSpinner()
+            showProgram()
         }, viewDate.year, viewDate.monthValue - 1, viewDate.dayOfMonth).apply {
             datePicker.maxDate = System.currentTimeMillis()
         }.show()
@@ -140,33 +140,34 @@ class MainActivity : AppCompatActivity() {
 
     // --- Program & Day selection ---
 
-    private fun setupProgramSpinner() {
+    /** Show the program in use. It is chosen once, and changed in Settings. */
+    private fun showProgram() {
         val programs = dao.allPrograms()
-        val spinner = findViewById<Spinner>(R.id.programSpinner)
-        // The old listener must not fire while the list is being replaced
-        spinner.onItemSelectedListener = null
-        spinner.adapter = ArrayAdapter(this, R.layout.spinner_item,
-            programs.map { it.name }).also { it.setDropDownViewResource(R.layout.spinner_dropdown) }
-        if (programs.isEmpty()) {
+        val active = programs.firstOrNull { it.id == prefs.getLong("activeProgramId", -1) }
+            ?: programs.singleOrNull()?.also { useProgram(it.id) }
+        if (active == null) {
             currentProgramId = 0
             currentProgramDay = null
             findViewById<Spinner>(R.id.daySpinner).adapter = null
             findViewById<LinearLayout>(R.id.exerciseContainer).removeAllViews()
+            if (programs.isNotEmpty()) askForProgram(programs)
             return
         }
+        currentProgramId = active.id
+        setupDaySpinner(active)
+    }
 
-        // Reopen on the program last in use
-        val activeIdx = programs.indexOfFirst { it.id == prefs.getLong("activeProgramId", -1) }
-        if (activeIdx >= 0) spinner.setSelection(activeIdx)
+    private fun useProgram(id: Long) = prefs.edit().putLong("activeProgramId", id).apply()
 
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
-                currentProgramId = programs[pos].id
-                prefs.edit().putLong("activeProgramId", currentProgramId).apply()
-                setupDaySpinner(programs[pos])
+    /** First run, or the program in use was deleted: there is nothing to show until one is chosen. */
+    private fun askForProgram(programs: List<Program>) {
+        AlertDialog.Builder(this).setTitle("Choose thy program")
+            .setItems(programs.map { it.name }.toTypedArray()) { _, which ->
+                useProgram(programs[which].id)
+                showProgram()
             }
-            override fun onNothingSelected(p: AdapterView<*>?) {}
-        }
+            .setCancelable(false)
+            .show()
     }
 
     private fun setupDaySpinner(program: Program) {
@@ -421,7 +422,7 @@ class MainActivity : AppCompatActivity() {
                     toast("Updated! All programs recalculated.")
                     // Re-render to show new weights
                     pendingDayId = currentProgramDay?.id
-                    setupProgramSpinner()
+                    showProgram()
                 }
                 .setNegativeButton("Not yet", null)
                 .show()
@@ -518,7 +519,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Save") { _, _ ->
                 dao.setExerciseRest(exerciseId, (input.text.toString().toIntOrNull() ?: 0).coerceIn(0, 3600))
                 pendingDayId = currentProgramDay?.id
-                setupProgramSpinner()
+                showProgram()
             }.setNegativeButton("Cancel", null).show()
     }
 
@@ -540,6 +541,14 @@ class MainActivity : AppCompatActivity() {
             text = label
             isChecked = prefs.getBoolean(key, default)
         }.also { layout.addView(it) }
+
+        label("Program")
+        val programs = dao.allPrograms()
+        val program = Spinner(this).apply {
+            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, programs.map { it.name })
+            setSelection(programs.indexOfFirst { it.id == currentProgramId }.coerceAtLeast(0))
+        }
+        layout.addView(program)
 
         label("Default rest between sets (seconds)")
         val seconds = EditText(this).apply {
@@ -582,8 +591,9 @@ class MainActivity : AppCompatActivity() {
                 FormulaEngine.increment = step.toDouble()
                 applyKeepScreenOn()
                 if (restTimer == null) showRestIdle()
+                programs.getOrNull(program.selectedItemPosition)?.let { useProgram(it.id) }
                 pendingDayId = currentProgramDay?.id
-                setupProgramSpinner()
+                showProgram()
             }.setNegativeButton("Cancel", null).show()
     }
 
@@ -613,7 +623,7 @@ class MainActivity : AppCompatActivity() {
         if (doneIdx < pointerIdx) {
             longToast("${progressNote}Session recorded.")
             pendingDayId = day.id
-            setupProgramSpinner()
+            showProgram()
             return
         }
 
@@ -623,7 +633,7 @@ class MainActivity : AppCompatActivity() {
             val weekNote = if (next.weekIndex != day.weekIndex) "Week ${next.weekIndex + 1} begins. " else ""
             val nextNote = "${weekNote}Next: ${next.name.ifBlank { "Day ${next.dayIndex + 1}" }}"
             if (progress.isEmpty()) toast(nextNote) else longToast(progressNote + nextNote)
-            setupProgramSpinner()
+            showProgram()
         } else {
             val changes = applyCycleMaxes(prog.id, state.cycleCount)
             dao.upsertState(state.copy(currentWeek = 0, currentDay = 0, cycleCount = state.cycleCount + 1))
@@ -634,7 +644,7 @@ class MainActivity : AppCompatActivity() {
                 .setMessage("$progressNote${if (progress.isEmpty()) "" else "\n"}$summary\n\nCycle ${state.cycleCount + 1} begins at week 1.")
                 .setPositiveButton("Onward", null)
                 .show()
-            setupProgramSpinner()
+            showProgram()
         }
     }
 
@@ -651,7 +661,7 @@ class MainActivity : AppCompatActivity() {
                     cycleCount = minOf(state.cycleCount, log.cycle)
                 ))
                 pendingDayId = day.id
-                setupProgramSpinner()
+                showProgram()
             }.setNegativeButton("Cancel", null).show()
     }
 
@@ -709,7 +719,7 @@ class MainActivity : AppCompatActivity() {
             viewDate = try { LocalDate.parse(s.date) } catch (_: Exception) { LocalDate.now() }
             prefs.edit().putLong("activeProgramId", programId).apply()
             pendingDayId = day
-            setupProgramSpinner()
+            showProgram()
         }
         dialog.show()
     }
@@ -769,7 +779,7 @@ class MainActivity : AppCompatActivity() {
             .setMessage("The program is removed. Sessions already logged with it stay in the calendar and the export.")
             .setPositiveButton("Delete") { _, _ ->
                 dao.deleteProgram(program.id)
-                setupProgramSpinner()
+                showProgram()
             }.setNegativeButton("Cancel", null).show()
     }
 
@@ -784,7 +794,7 @@ class MainActivity : AppCompatActivity() {
             val result = try { ProgramPorter.importFromJson(dao, text) }
                 catch (e: Exception) { ProgramPorter.ImportResult(false, "Invalid format: ${e.message}") }
             longToast(result.message)
-            if (result.success) setupProgramSpinner()
+            if (result.success) showProgram()
             return
         }
 
@@ -809,7 +819,7 @@ class MainActivity : AppCompatActivity() {
                 fun run() {
                     val result = ProgramPorter.importCsv(dao, name, rows)
                     longToast(result.message)
-                    if (result.success) setupProgramSpinner()
+                    if (result.success) offerProgram(name)
                 }
                 if (dao.allPrograms().none { it.name == name }) run()
                 else AlertDialog.Builder(this).setTitle("Replace $name?")
@@ -818,6 +828,22 @@ class MainActivity : AppCompatActivity() {
                     .setPositiveButton("Replace") { _, _ -> run() }
                     .setNegativeButton("Cancel", null).show()
             }.setNegativeButton("Cancel", null).show()
+    }
+
+    /** A program just imported: train it now, or keep the one in use. */
+    private fun offerProgram(name: String) {
+        val imported = dao.allPrograms().firstOrNull { it.name == name } ?: return
+        // Replacing the program in use gives it a new id; it stays the one in use
+        if (imported.id != currentProgramId && dao.allPrograms().any { it.id == currentProgramId }) {
+            AlertDialog.Builder(this).setTitle("Train $name now?")
+                .setMessage("You can switch programs at any time in Settings.")
+                .setPositiveButton("Switch") { _, _ -> useProgram(imported.id); showProgram() }
+                .setNegativeButton("Not now") { _, _ -> showProgram() }
+                .show()
+        } else {
+            useProgram(imported.id)
+            showProgram()
+        }
     }
 
     // --- Backup: the whole database as one file ---
@@ -875,7 +901,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 toast("Maxes updated. All programs recalculated.")
                 pendingDayId = currentProgramDay?.id
-                setupProgramSpinner()
+                showProgram()
             }.setNegativeButton("Cancel", null).show()
     }
 
@@ -887,7 +913,7 @@ class MainActivity : AppCompatActivity() {
         val newCycle = if (nextWeek == 0) state.cycleCount + 1 else state.cycleCount
         dao.upsertState(state.copy(currentWeek = nextWeek, currentDay = 0, cycleCount = newCycle))
         toast("Week ${nextWeek + 1} of ${prog.cycleWeeks}")
-        setupProgramSpinner()
+        showProgram()
     }
 
     private fun promptAddExercise() {

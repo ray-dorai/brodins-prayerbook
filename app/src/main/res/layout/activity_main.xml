@@ -79,7 +79,7 @@
         android:layout_height="3dp"
         android:background="@color/amber" />
 
-    <!-- Program & day selectors -->
+    <!-- Day selector; the program is chosen in Settings -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -89,18 +89,9 @@
         android:background="@color/parchment_light">
 
         <Spinner
-            android:id="@+id/programSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@drawable/input_box"
-            android:popupBackground="@color/parchment_light"
-            android:paddingHorizontal="8dp" />
-
-        <Spinner
             android:id="@+id/daySpinner"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginTop="6dp"
             android:background="@drawable/input_box"
             android:popupBackground="@color/parchment_light"
             android:paddingHorizontal="8dp" />

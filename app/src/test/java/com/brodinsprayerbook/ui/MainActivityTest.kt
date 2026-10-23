@@ -138,14 +138,48 @@ class MainActivityTest {
         assertEquals("Finish Session", text(R.id.btnFinish))
     }
 
-    @Test fun theProgramLastUsedIsTheOneItReopensOn() {
+    private fun firstExercise() = exercises().first().findViewById<TextView>(R.id.exerciseName).text.toString()
+
+    @Test fun theProgramInUseIsTheOneItReopensOnWithoutAsking() {
         ProgramPorter.importCsv(dao, "Another", ProgramCsv.parse("exercise,reps\nPull-Up,8\n"))
         prefs.edit().putLong("activeProgramId", program).commit()
 
         launch()
 
-        assertEquals("Test Block", view<Spinner>(R.id.programSpinner).selectedItem)
-        assertEquals("Overhead Press", exercises().first().findViewById<TextView>(R.id.exerciseName).text.toString())
+        assertNull(ShadowDialog.getLatestDialog())
+        assertEquals("Overhead Press", firstExercise())
+    }
+
+    @Test fun withSeveralProgramsAndNoneChosenItAsksOnce() {
+        ProgramPorter.importCsv(dao, "Another", ProgramCsv.parse("exercise,reps\nPull-Up,8\n"))
+        launch()
+        assertEquals("Choose thy program", latestDialog().title())
+        assertEquals(listOf("Another", "Test Block"), latestDialog().items())
+        assertTrue(exercises().isEmpty())
+
+        latestDialog().pick("Another")
+
+        assertEquals("Pull-Up", firstExercise())
+        scenario.recreate()
+        idle()
+        scenario.onActivity { activity = it }
+        assertFalse(latestDialog().isShowing)
+        assertEquals("Pull-Up", firstExercise())
+    }
+
+    @Test fun theProgramIsChangedInSettings() {
+        ProgramPorter.importCsv(dao, "Another", ProgramCsv.parse("exercise,reps\nPull-Up,8\n"))
+        prefs.edit().putLong("activeProgramId", program).commit()
+        launch()
+
+        tap(R.id.btnSettings)
+        val picker = latestDialog().window!!.decorView.all<Spinner>().single()
+        assertEquals("Test Block", picker.selectedItem)
+        picker.setSelection(0)
+        latestDialog().tap(BUTTON_POSITIVE)
+
+        assertEquals("Pull-Up", firstExercise())
+        assertEquals(dao.allPrograms().single { it.name == "Another" }.id, prefs.getLong("activeProgramId", -1))
     }
 
     @Test fun lastTimesNumbersAreShownBesideTheExercise() {
@@ -568,6 +602,21 @@ class MainActivityTest {
         assertEquals("Imported 'pull day': 1 days, 3 sets", toast())
         val imported = dao.allPrograms().single { it.name == "pull day" }
         assertEquals(3, dao.plannedSetsForDay(dao.daysForProgram(imported.id).single().id).size)
+
+        // Nothing on screen shows the new program, so it offers to switch
+        assertEquals("Train pull day now?", latestDialog().title())
+        latestDialog().tap(BUTTON_POSITIVE)
+        assertEquals("Pull-Up", firstExercise())
+    }
+
+    @Test fun keepingTheProgramInUseAfterAnImport() {
+        openCsv("pull_day.csv", "exercise,reps\nPull-Up,8\n")
+        latestDialog().tap(BUTTON_POSITIVE)
+
+        latestDialog().tap(android.content.DialogInterface.BUTTON_NEGATIVE)
+
+        assertEquals("Overhead Press", firstExercise())
+        assertEquals(program, prefs.getLong("activeProgramId", -1))
     }
 
     @Test fun importingOverAnExistingProgramAsksFirst() {
@@ -582,6 +631,7 @@ class MainActivityTest {
 
         val replaced = dao.allPrograms().single()
         assertEquals("Pull-Up", dao.plannedSetsForDay(dao.daysForProgram(replaced.id).single().id).single().exerciseName)
+        assertEquals("the program in use stays in use", "Pull-Up", firstExercise())
     }
 
     @Test fun aCsvThatCannotBeReadSaysWhichRowIsWrong() {
