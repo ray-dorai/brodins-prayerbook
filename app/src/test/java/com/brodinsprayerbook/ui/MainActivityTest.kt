@@ -100,7 +100,7 @@ class MainActivityTest {
 
     private fun <T : View> view(id: Int): T = activity.findViewById(id)
     private fun text(id: Int) = view<TextView>(id).text.toString()
-    private fun exercises() = view<LinearLayout>(R.id.exerciseContainer).children.toList()
+    private fun exercises() = view<LinearLayout>(R.id.exerciseContainer).children.filter { it.findViewById<View>(R.id.exerciseName) != null }.toList()
     private fun exercise(name: String) = exercises().first { it.findViewById<TextView>(R.id.exerciseName).text.toString() == name }
     /** The nth set row of an exercise, counting from 1. */
     private fun row(name: String, n: Int): View = exercise(name).findViewById<LinearLayout>(R.id.setsContainer).getChildAt(n - 1)
@@ -579,9 +579,141 @@ class MainActivityTest {
 
         val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
         val weekday = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.FULL, Locale.US)
-        assertEquals("$today,$weekday,Test Block,1,1,Press Day,no,Overhead Press,1,50,5,50,5,,,lb",
+        assertEquals("$today,$weekday,Test Block,1,1,Press Day,no,Overhead Press,1,50,5,50,5,,,,,lb,m",
             File(dir, "prayerbook_log.csv").readLines().drop(1).single())
         assertEquals("2026-01-01,Overhead Press,100,onboarding,lb", File(dir, "prayerbook_maxes.csv").readLines().drop(1).single())
+    }
+
+    // --- Exercises added to a session, and how each is recorded ---
+
+    private fun container() = view<LinearLayout>(R.id.exerciseContainer)
+    private fun button(label: String, inView: View = container()) = inView.all<TextView>().single { it.text.toString() == label }
+
+    /** In the exercise list dialog: search, then choose. */
+    private fun chooseExercise(search: String, label: String) {
+        val decor = latestDialog().window!!.decorView
+        decor.all<EditText>().single().setText(search)
+        val list = decor.all<android.widget.ListView>().single()
+        val pos = (0 until list.adapter.count).first { list.adapter.getItem(it).toString() == label }
+        list.performItemClick(null, pos, 0)
+        idle()
+    }
+
+    private fun newExercise(name: String, measure: String) {
+        val decor = latestDialog().window!!.decorView
+        decor.all<EditText>().single().setText(name)
+        decor.all<android.widget.RadioButton>().single { it.text == measure }.isChecked = true
+        latestDialog().tap(BUTTON_POSITIVE)
+    }
+
+    @Test fun anExerciseCanBeAddedToTheSessionWithoutChangingTheProgram() {
+        launch()
+        button("+ Add exercise").tap()
+        assertEquals("Add to this session", latestDialog().title())
+
+        chooseExercise("squ", "Squat")
+
+        assertEquals(listOf("Overhead Press", "KB Row", "Squat"), exercises().map { it.findViewById<TextView>(R.id.exerciseName).text.toString() })
+        val row = row("Squat", 1)
+        assertEquals("set 1", row.planned())
+        row.weight().setText("95")
+        row.reps().setText("8")
+        row.noose().tap()
+
+        val added = dao.actualSetsForLog(log(0).id).single { it.exerciseName == "Squat" }
+        assertEquals(listOf(95.0, 8, 5), listOf(added.weight, added.reps, added.setNumber))
+        assertEquals("REST  2:00  ·  tap to stop", text(R.id.restTimer))
+        assertEquals("the program is as it was", listOf("Overhead Press", "KB Row"),
+            dao.plannedSetsForDay(days[0].id).map { it.exerciseName }.distinct())
+        assertTrue(dao.sessions().single().setsLogged == 1)
+    }
+
+    @Test fun addedSetsCanBeAddedToAndTakenAway() {
+        launch()
+        button("+ Add exercise").tap()
+        chooseExercise("", "Squat")
+
+        button("+ set", exercise("Squat")).tap()
+        assertEquals(listOf("set 1", "set 2"), exercise("Squat").findViewById<LinearLayout>(R.id.setsContainer)
+            .children.mapNotNull { it.findViewById<TextView>(R.id.plannedLabel)?.text?.toString() }.toList())
+
+        row("Squat", 2).findViewById<TextView>(R.id.plannedLabel).performLongClick()
+        idle()
+        assertEquals("Remove this set of Squat?", latestDialog().title())
+        latestDialog().tap(BUTTON_POSITIVE)
+
+        assertEquals(1, dao.actualSetsForLog(log(0).id).count { it.exerciseName == "Squat" })
+        assertEquals(1, exercise("Squat").findViewById<LinearLayout>(R.id.setsContainer).children.count { it.findViewById<View>(R.id.plannedLabel) != null })
+    }
+
+    @Test fun aNewTimedExerciseIsLoggedInMinutesAndSeconds() {
+        launch()
+        tap(R.id.btnSettings)
+        button("Exercises: add new, or change what a set records", latestDialog().window!!.decorView).tap()
+        chooseExercise("Dead Hang", "+ New exercise…")
+        assertEquals("Dead Hang", latestDialog().window!!.decorView.all<EditText>().single().text.toString())
+        newExercise("Dead Hang", "Time")
+        assertEquals("time", dao.allExercises().single { it.name == "Dead Hang" }.measure)
+        ShadowDialog.getShownDialogs().forEach { it.dismiss() }
+
+        button("+ Add exercise").tap()
+        chooseExercise("hang", "Dead Hang")
+        val row = row("Dead Hang", 1)
+        assertEquals("no weight for a hang", View.INVISIBLE, row.weight().visibility)
+        assertEquals("m:ss", row.reps().hint.toString())
+
+        row.noose().tap()
+        assertEquals("Enter what you did, then tap again.", toast())
+
+        row.reps().setText("1:30")
+        row.noose().tap()
+
+        val set = dao.actualSetsForLog(log(0).id).single { it.exerciseName == "Dead Hang" }
+        assertEquals(listOf(90, null, null), listOf(set.seconds, set.reps, set.weight))
+        assertTrue(row.noose().isSelected)
+    }
+
+    @Test fun anExerciseThatExistsIsNotMadeTwice() {
+        launch()
+        button("+ Add exercise").tap()
+        chooseExercise("squat", "+ New exercise…")
+
+        newExercise("squat", "Reps")
+
+        assertEquals("squat is already in the list.", toast())
+        assertEquals(1, dao.allExercises().count { it.name.equals("Squat", ignoreCase = true) })
+    }
+
+    @Test fun changingWhatASetRecordsChangesItsBoxes() {
+        launch()
+        tap(R.id.btnSettings)
+        button("Exercises: add new, or change what a set records", latestDialog().window!!.decorView).tap()
+        assertTrue(latestDialog().window!!.decorView.all<android.widget.ListView>().single().adapter.getItem(1).toString().endsWith("·  Weight × reps"))
+
+        chooseExercise("KB", "KB Row  ·  Weight × reps")
+        assertEquals("KB Row: each set records", latestDialog().title())
+        latestDialog().window!!.decorView.all<android.widget.RadioButton>().single { it.text == "Weight × distance" }.isChecked = true
+        latestDialog().tap(BUTTON_POSITIVE)
+
+        assertEquals("weight_distance", dao.allExercises().single { it.name == "KB Row" }.measure)
+        val row = row("KB Row", 1)
+        assertEquals("35", row.weight().hint.toString())
+        assertEquals("m", row.reps().hint.toString())
+        row.reps().setText("40")
+        assertEquals(40.0, logged(0, "KB Row", 4).distance!!, 0.0)
+    }
+
+    @Test fun timedWorkShowsInTheCalendar() {
+        dao.setMeasure(dao.allExercises().single { it.name == "KB Row" }.id, "weight_time")
+        launch()
+        row("KB Row", 1).reps().setText("0:45")
+        row("KB Row", 1).noose().tap()
+        tap(R.id.btnFinish)
+        tap(R.id.btnManage)
+        latestDialog().pick("Calendar")
+        latestDialog().pick(today)
+
+        assertTrue(latestDialog().message(), latestDialog().message().endsWith("KB Row\n   35 · 0:45"))
     }
 
     // --- Programs in and out ---

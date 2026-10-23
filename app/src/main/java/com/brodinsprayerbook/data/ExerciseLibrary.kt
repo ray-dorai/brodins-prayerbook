@@ -159,7 +159,23 @@ object ExerciseLibrary {
         ex(dao, "Walking", "Cardio", "cardio")
     }
 
+    /** Exercises not recorded as weight × reps. Everything else is, with the weight left blank for bodyweight. */
+    val measures: Map<String, Measure> = mapOf(
+        "Plank" to Measure.TIME, "Jump Rope" to Measure.TIME, "Stair Climber" to Measure.TIME,
+        "Farmers Walk" to Measure.WEIGHT_DISTANCE,
+        "Cycling" to Measure.DISTANCE_TIME, "Elliptical" to Measure.DISTANCE_TIME,
+        "Rowing Machine" to Measure.DISTANCE_TIME, "Running (Outdoor)" to Measure.DISTANCE_TIME,
+        "Running (Treadmill)" to Measure.DISTANCE_TIME, "Swimming" to Measure.DISTANCE_TIME,
+        "Walking" to Measure.DISTANCE_TIME,
+        "Crunch" to Measure.REPS, "Decline Crunch" to Measure.REPS, "Leg Raise" to Measure.REPS,
+        "Hanging Knee Raise" to Measure.REPS, "Hanging Leg Raise" to Measure.REPS, "Toes to Bar" to Measure.REPS,
+        "Mountain Climber" to Measure.REPS, "Sit-Up" to Measure.REPS, "Ab Wheel Rollout" to Measure.REPS,
+        "Dragon Flag" to Measure.REPS, "Push-Up" to Measure.REPS, "Diamond Push-Up" to Measure.REPS,
+        "Inverted Row" to Measure.REPS, "Pistol Squat" to Measure.REPS, "Glute-Ham Raise" to Measure.REPS
+    )
+
     private fun ex(dao: PrayerBookDao, name: String, category: String, equipment: String, isMain: Boolean = false) {
-        dao.insertExercise(Exercise(name = name, category = category, isMainLift = isMain))
+        dao.insertExercise(Exercise(name = name, category = category, isMainLift = isMain,
+            measure = (measures[name] ?: Measure.WEIGHT_REPS).key))
     }
 }

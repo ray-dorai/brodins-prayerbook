@@ -13,18 +13,19 @@ object CsvExport {
     private fun line(vararg cells: Any?) = cells.joinToString(",") { ProgramCsv.esc(it?.toString() ?: "") } + "\n"
 
     /** Every logged set, with where it sat in the calendar and the program. */
-    fun exportLog(context: Context, rows: List<ExportRow>, unit: String): File {
+    fun exportLog(context: Context, rows: List<ExportRow>, unit: String, distanceUnit: String = "m"): File {
         val file = File(dir(context), "prayerbook_log.csv")
         file.bufferedWriter().use { w ->
             w.write("date,weekday,program,cycle,week,day,session_finished,exercise,set," +
-                "planned_weight,planned_reps,weight,reps,rir,notes,unit\n")
+                "planned_weight,planned_reps,weight,reps,seconds,distance,rir,notes,unit,distance_unit\n")
             rows.forEach { r ->
                 val weekday = try {
                     LocalDate.parse(r.date).dayOfWeek.getDisplayName(TextStyle.FULL, Locale.US)
                 } catch (_: Exception) { "" }
                 w.write(line(r.date, weekday, r.program, r.cycle, if (r.week > 0) r.week else "", r.day,
                     if (r.completed) "yes" else "no", r.exercise, r.set,
-                    num(r.plannedWeight), r.plannedReps, num(r.weight), r.reps, num(r.rir), r.notes, unit))
+                    num(r.plannedWeight), r.plannedReps, num(r.weight), r.reps, r.seconds, num(r.distance), num(r.rir), r.notes,
+                    unit, distanceUnit))
             }
         }
         return file

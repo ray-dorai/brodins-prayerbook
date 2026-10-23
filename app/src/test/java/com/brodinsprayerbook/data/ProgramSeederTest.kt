@@ -55,6 +55,16 @@ class ProgramSeederTest {
         }
     }
 
+    @Test fun timedAndDistanceWorkIsRecordedThatWay() {
+        val measure = dao.allExercises().associate { it.name to Measure.of(it.measure) }
+        assertEquals(Measure.TIME, measure["Plank"])
+        assertEquals(Measure.DISTANCE_TIME, measure["Running (Outdoor)"])
+        assertEquals(Measure.WEIGHT_DISTANCE, measure["Farmers Walk"])
+        assertEquals(Measure.REPS, measure["Push-Up"])
+        assertEquals(Measure.WEIGHT_REPS, measure["Squat"])
+        assertEquals("every named exercise exists", emptySet<String>(), ExerciseLibrary.measures.keys - measure.keys)
+    }
+
     @Test fun seedingHighFrequencyStrengthAgainAddsNothing() {
         val exercises = dao.allExercises().size
         ProgramSeeder.seedHighFrequencyStrength(dao)

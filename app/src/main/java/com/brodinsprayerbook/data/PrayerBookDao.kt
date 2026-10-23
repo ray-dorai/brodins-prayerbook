@@ -11,6 +11,7 @@ interface PrayerBookDao {
     @Query("SELECT * FROM Exercise WHERE isMainLift = 1") fun mainLifts(): List<Exercise>
     @Query("UPDATE Exercise SET isMainLift = 1 WHERE id = :id") fun markMainLift(id: Long)
     @Query("UPDATE Exercise SET restSeconds = :seconds WHERE id = :id") fun setExerciseRest(id: Long, seconds: Int)
+    @Query("UPDATE Exercise SET measure = :measure WHERE id = :id") fun setMeasure(id: Long, measure: String)
 
     // --- User maxes ---
     @Insert(onConflict = OnConflictStrategy.REPLACE) fun upsertMax(m: UserMax): Long
@@ -38,7 +39,7 @@ interface PrayerBookDao {
     // --- Planned sets ---
     @Insert fun insertPlannedSet(s: PlannedSet): Long
     @Query("""
-        SELECT ps.*, e.name AS exerciseName, e.restSeconds AS exerciseRest FROM PlannedSet ps
+        SELECT ps.*, e.name AS exerciseName, e.restSeconds AS exerciseRest, e.measure AS exerciseMeasure FROM PlannedSet ps
         JOIN Exercise e ON e.id = ps.exerciseId
         WHERE ps.programDayId = :dayId ORDER BY ps.setNumber, ps.id
     """)
@@ -56,17 +57,20 @@ interface PrayerBookDao {
         SELECT w.id AS logId, w.date, w.cycle, w.completed, w.programDayId,
                w.programName AS program, w.week, w.dayName,
                (SELECT COUNT(*) FROM ActualSet a WHERE a.workoutLogId = w.id
-                    AND (a.reps IS NOT NULL OR a.weight IS NOT NULL)) AS setsLogged
+                    AND (a.reps IS NOT NULL OR a.weight IS NOT NULL OR a.seconds IS NOT NULL
+                         OR a.distance IS NOT NULL)) AS setsLogged
         FROM WorkoutLog w ORDER BY w.date DESC, w.id DESC
     """)
     fun sessions(): List<SessionRow>
 
     // --- What this exercise looked like the last time it was done before a date ---
     @Query("""
-        SELECT a.weight, a.reps, w.date FROM ActualSet a JOIN WorkoutLog w ON w.id = a.workoutLogId
-        WHERE a.exerciseId = :exerciseId AND a.reps IS NOT NULL AND w.date = (
+        SELECT a.weight, a.reps, a.seconds, a.distance, w.date FROM ActualSet a JOIN WorkoutLog w ON w.id = a.workoutLogId
+        WHERE a.exerciseId = :exerciseId AND (a.reps IS NOT NULL OR a.seconds IS NOT NULL
+            OR a.distance IS NOT NULL) AND w.date = (
             SELECT MAX(w2.date) FROM ActualSet a2 JOIN WorkoutLog w2 ON w2.id = a2.workoutLogId
-            WHERE a2.exerciseId = :exerciseId AND a2.reps IS NOT NULL AND w2.date < :date)
+            WHERE a2.exerciseId = :exerciseId AND (a2.reps IS NOT NULL OR a2.seconds IS NOT NULL
+                OR a2.distance IS NOT NULL) AND w2.date < :date)
         ORDER BY w.id, a.setNumber
     """)
     fun lastTime(exerciseId: Long, date: String): List<LastSet>
@@ -82,8 +86,9 @@ interface PrayerBookDao {
     // --- Actual sets ---
     @Insert fun insertActualSet(s: ActualSet): Long
     @Update fun updateActualSet(s: ActualSet)
+    @Query("DELETE FROM ActualSet WHERE id = :id") fun deleteActualSet(id: Long)
     @Query("""
-        SELECT a.*, e.name AS exerciseName FROM ActualSet a
+        SELECT a.*, e.name AS exerciseName, e.measure AS exerciseMeasure, e.restSeconds AS exerciseRest FROM ActualSet a
         JOIN Exercise e ON e.id = a.exerciseId
         WHERE a.workoutLogId = :logId ORDER BY a.setNumber, a.id
     """)
@@ -97,9 +102,10 @@ interface PrayerBookDao {
     @Query("""
         SELECT w.date, w.programName AS program, w.cycle, w.week, w.dayName AS day, w.completed,
                e.name AS exercise, a.setNumber AS 'set', a.plannedWeight, a.plannedReps,
-               a.weight, a.reps, a.rir, a.notes
+               a.weight, a.reps, a.seconds, a.distance, a.rir, a.notes
         FROM ActualSet a JOIN WorkoutLog w ON w.id = a.workoutLogId JOIN Exercise e ON e.id = a.exerciseId
-        WHERE a.reps IS NOT NULL OR a.weight IS NOT NULL OR a.notes != ''
+        WHERE a.reps IS NOT NULL OR a.weight IS NOT NULL OR a.seconds IS NOT NULL OR a.distance IS NOT NULL
+            OR a.notes != ''
         ORDER BY w.date, w.id, a.setNumber
     """)
     fun allActualsForExport(): List<ExportRow>
@@ -109,21 +115,25 @@ data class PlannedSetWithName(
     val id: Long, val programDayId: Long, val exerciseId: Long,
     val setNumber: Int, val reps: Int, val weightFormula: String,
     val isAmrap: Boolean, val repsText: String, val note: String, val restSeconds: Int, val progressStep: Double,
-    val exerciseName: String, val exerciseRest: Int
+    val exerciseName: String, val exerciseRest: Int, val exerciseMeasure: String = Measure.WEIGHT_REPS.key
 )
 
 data class ActualSetWithName(
     val id: Long, val workoutLogId: Long, val exerciseId: Long,
     val setNumber: Int, val reps: Int?, val weight: Double?,
     val notes: String, val plannedWeight: Double?, val plannedReps: String, val rir: Double?,
-    val exerciseName: String
-)
+    val exerciseName: String, val seconds: Int? = null, val distance: Double? = null,
+    val exerciseMeasure: String = Measure.WEIGHT_REPS.key, val exerciseRest: Int = 0
+) {
+    val done: Boolean get() = reps != null || seconds != null || distance != null
+}
 
 data class ExportRow(
     val date: String, val program: String, val cycle: Int, val week: Int, val day: String,
     val completed: Boolean, val exercise: String, val set: Int,
     val plannedWeight: Double?, val plannedReps: String,
-    val weight: Double?, val reps: Int?, val rir: Double?, val notes: String
+    val weight: Double?, val reps: Int?, val rir: Double?, val notes: String,
+    val seconds: Int? = null, val distance: Double? = null
 )
 
 data class SessionRow(
@@ -133,6 +143,6 @@ data class SessionRow(
 
 data class LiftedSet(val exerciseId: Long, val weight: Double, val reps: Int)
 
-data class LastSet(val weight: Double?, val reps: Int, val date: String)
+data class LastSet(val weight: Double?, val reps: Int?, val date: String, val seconds: Int? = null, val distance: Double? = null)
 
 data class MaxHistoryRow(val date: String, val exercise: String, val oneRepMax: Double, val source: String)

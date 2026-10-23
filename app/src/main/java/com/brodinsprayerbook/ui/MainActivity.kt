@@ -47,10 +47,12 @@ class MainActivity : AppCompatActivity() {
     private var viewDate: LocalDate = LocalDate.now()
     private val dateStr: String get() = viewDate.toString()
     private var currentProgramId: Long = 0
+    private var currentProgram: Program? = null
     private var currentProgramDay: ProgramDay? = null
     private var pendingDayId: Long? = null
     private val prefs by lazy { getSharedPreferences("prayerbook", MODE_PRIVATE) }
     private val unit: String get() = prefs.getString("unit", "lb") ?: "lb"
+    private val distanceUnit: String get() = prefs.getString("distanceUnit", "m") ?: "m"
     private var restTimer: CountDownTimer? = null
     private var restEndsAt = 0L       // on the elapsedRealtime clock
     private var lastRestSeconds = 0   // what the strip restarts with
@@ -223,6 +225,7 @@ class MainActivity : AppCompatActivity() {
         val container = findViewById<LinearLayout>(R.id.exerciseContainer)
         container.removeAllViews()
 
+        currentProgram = program
         currentProgramDay = programDay
         val cycle = dao.stateFor(programDay.programId)?.cycleCount ?: 1
         val planned = dao.plannedSetsForDay(programDay.id)
@@ -239,31 +242,16 @@ class MainActivity : AppCompatActivity() {
         val byExercise = planned.groupBy { it.exerciseId }
 
         for ((exerciseId, sets) in byExercise) {
-            val exerciseView = LayoutInflater.from(this).inflate(R.layout.item_exercise, container, false)
-            // Illuminated initial: first letter in vermilion
-            val exerciseName = sets.first().exerciseName
-            exerciseView.findViewById<TextView>(R.id.exerciseName).text = SpannableString(exerciseName).apply {
-                if (exerciseName.isNotEmpty()) setSpan(ForegroundColorSpan(getColor(R.color.crimson_light)),
-                    0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            }
-            val last = dao.lastTime(exerciseId, dateStr)
-            if (last.isNotEmpty()) exerciseView.findViewById<TextView>(R.id.lastTime).apply {
-                text = "Last (${last.first().date}):  " + summarize(last)
-                visibility = View.VISIBLE
-            }
             // Rest for this exercise: the lifter's own, else the program's, else the default
             val exerciseRest = sets.first().exerciseRest
             val restFor = { ps: PlannedSetWithName ->
                 if (exerciseRest > 0) exerciseRest else if (ps.restSeconds > 0) ps.restSeconds
                 else prefs.getInt("restSeconds", 120)
             }
-            exerciseView.findViewById<TextView>(R.id.restLabel).apply {
-                val lengths = sets.map(restFor).distinct()
-                text = "rest " + lengths.joinToString(" / ") { clock(it) }
-                isSelected = exerciseRest > 0
-                setOnClickListener { promptExerciseRest(exerciseId, exerciseName, exerciseRest) }
-            }
+            val exerciseView = exerciseView(container, exerciseId, sets.first().exerciseName, exerciseRest,
+                sets.map(restFor).distinct())
             val setsContainer = exerciseView.findViewById<LinearLayout>(R.id.setsContainer)
+            val measure = Measure.of(sets.first().exerciseMeasure)
 
             // Get training max for this exercise
             val userMax = dao.maxFor(exerciseId)
@@ -295,28 +283,120 @@ class MainActivity : AppCompatActivity() {
                         workoutLogId = log.id, exerciseId = exerciseId, setNumber = ps.setNumber
                     ))
                     actual = ActualSetWithName(newId, log.id, exerciseId, ps.setNumber,
-                        null, null, "", null, "", null, sets.first().exerciseName)
+                        null, null, "", null, "", null, ps.exerciseName)
                 }
 
-                bindActualInputs(row, actual, ps, resolvedWeight, repsLabel, restFor(ps))
+                bindActualInputs(row, actual, ps, measure, resolvedWeight, repsLabel, restFor(ps))
                 setsContainer.addView(row)
             }
             container.addView(exerciseView)
         }
+
+        // Exercises the lifter added to this session, below the program's
+        val plannedKeys = planned.map { it.exerciseId to it.setNumber }.toSet()
+        for ((exerciseId, sets) in actuals.filter { (it.exerciseId to it.setNumber) !in plannedKeys }.groupBy { it.exerciseId }) {
+            val first = sets.first()
+            val rest = if (first.exerciseRest > 0) first.exerciseRest else prefs.getInt("restSeconds", 120)
+            val exerciseView = exerciseView(container, exerciseId, first.exerciseName, first.exerciseRest, listOf(rest))
+            val setsContainer = exerciseView.findViewById<LinearLayout>(R.id.setsContainer)
+            sets.forEachIndexed { i, actual ->
+                val row = LayoutInflater.from(this).inflate(R.layout.item_set_row, setsContainer, false)
+                row.findViewById<TextView>(R.id.plannedLabel).apply {
+                    text = "set ${i + 1}"
+                    setTextColor(getColor(R.color.text_dim))
+                    // An added set can be taken away again
+                    setOnLongClickListener { confirmRemoveSet(actual); true }
+                }
+                bindActualInputs(row, actual, null, Measure.of(first.exerciseMeasure), null, "", rest)
+                setsContainer.addView(row)
+            }
+            setsContainer.addView(smallButton("+ set") { addSet(log, exerciseId) })
+            container.addView(exerciseView)
+        }
+        container.addView(smallButton("+ Add exercise") {
+            pickExercise("Add to this session") { addSet(log, it.id) }
+        }.apply { (layoutParams as LinearLayout.LayoutParams).topMargin = (12 * resources.displayMetrics.density).toInt() })
+    }
+
+    /** An exercise's heading: its name, what was done last time, and its rest. */
+    private fun exerciseView(container: LinearLayout, exerciseId: Long, exerciseName: String, exerciseRest: Int,
+                             restLengths: List<Int>): View {
+        val exerciseView = LayoutInflater.from(this).inflate(R.layout.item_exercise, container, false)
+        // Illuminated initial: first letter in vermilion
+        exerciseView.findViewById<TextView>(R.id.exerciseName).text = SpannableString(exerciseName).apply {
+            if (exerciseName.isNotEmpty()) setSpan(ForegroundColorSpan(getColor(R.color.crimson_light)),
+                0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        val last = dao.lastTime(exerciseId, dateStr)
+        if (last.isNotEmpty()) exerciseView.findViewById<TextView>(R.id.lastTime).apply {
+            text = "Last (${last.first().date}):  " + summarize(last)
+            visibility = View.VISIBLE
+        }
+        exerciseView.findViewById<TextView>(R.id.restLabel).apply {
+            text = "rest " + restLengths.joinToString(" / ") { clock(it) }
+            isSelected = exerciseRest > 0
+            setOnClickListener { promptExerciseRest(exerciseId, exerciseName, exerciseRest) }
+        }
+        return exerciseView
+    }
+
+    private fun smallButton(label: String, onClick: () -> Unit) = TextView(this).apply {
+        text = label
+        textSize = 15f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(getColorStateList(R.color.set_icon))
+        setBackgroundResource(R.drawable.btn_set)
+        gravity = android.view.Gravity.CENTER
+        val pad = (8 * resources.displayMetrics.density).toInt()
+        setPadding(pad, pad, pad, pad)
+        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            .apply { topMargin = pad / 2 }
+        setOnClickListener { onClick() }
+    }
+
+    /** One more set of an exercise in this session, numbered after everything already in it. */
+    private fun addSet(log: WorkoutLog, exerciseId: Long) {
+        val day = currentProgramDay ?: return
+        val last = maxOf(dao.actualSetsForLog(log.id).maxOfOrNull { it.setNumber } ?: 0,
+            dao.plannedSetsForDay(day.id).maxOfOrNull { it.setNumber } ?: 0)
+        dao.insertActualSet(ActualSet(workoutLogId = log.id, exerciseId = exerciseId, setNumber = last + 1))
+        currentProgram?.let { renderDay(it, day) }
+    }
+
+    private fun confirmRemoveSet(actual: ActualSetWithName) {
+        AlertDialog.Builder(this).setTitle("Remove this set of ${actual.exerciseName}?")
+            .setPositiveButton("Remove") { _, _ ->
+                dao.deleteActualSet(actual.id)
+                val day = currentProgramDay ?: return@setPositiveButton
+                currentProgram?.let { renderDay(it, day) }
+            }.setNegativeButton("Cancel", null).show()
     }
 
     /** "130×1, 135×1, 130×3 ×3" — runs of identical sets are folded. */
     private fun summarize(sets: List<LastSet>): String {
         val parts = mutableListOf<Pair<String, Int>>()
         for (s in sets) {
-            val text = (s.weight?.let { FormulaEngine.formatWeight(it) + "×" } ?: "×") + s.reps
+            val text = describe(s.weight, s.reps, s.seconds, s.distance, compact = true)
             if (parts.lastOrNull()?.first == text) parts[parts.size - 1] = text to parts.last().second + 1
             else parts += text to 1
         }
         return parts.joinToString(",  ") { (t, n) -> if (n > 1) "$t ×$n" else t }
     }
 
-    private fun bindActualInputs(row: View, actual: ActualSetWithName, ps: PlannedSetWithName,
+    /** A set as done: "135 × 5", "× 12", "35 · 0:45", "5 km · 25:00". */
+    private fun describe(weight: Double?, reps: Int?, seconds: Int?, distance: Double?, compact: Boolean = false): String {
+        val times = if (compact) "×" else " × "
+        val parts = mutableListOf<String>()
+        when {
+            reps != null -> parts += (weight?.let { FormulaEngine.formatWeight(it) + times } ?: times.trimStart()) + reps
+            weight != null -> parts += FormulaEngine.formatWeight(weight)
+        }
+        distance?.let { parts += "${FormulaEngine.formatWeight(it)} $distanceUnit" }
+        seconds?.let { parts += Seconds.format(it) }
+        return parts.joinToString(" · ").ifEmpty { "—" }
+    }
+
+    private fun bindActualInputs(row: View, actual: ActualSetWithName, ps: PlannedSetWithName?, measure: Measure,
                                  plannedWeight: Double?, plannedReps: String, restSeconds: Int) {
         val wt = row.findViewById<EditText>(R.id.inputWeight)
         val rp = row.findViewById<EditText>(R.id.inputReps)
@@ -325,29 +405,50 @@ class MainActivity : AppCompatActivity() {
         val saveBtn = row.findViewById<View>(R.id.btnSaveSet)
         var note = actual.notes
         // Reps that can be committed without typing: a plain count, not "as many as possible" or a range
-        val fixedReps = !ps.isAmrap && ps.repsText.isBlank()
+        val fixedReps = ps != null && !ps.isAmrap && ps.repsText.isBlank()
 
-        actual.weight?.let { wt.setText(FormulaEngine.formatWeight(it)) }
-        actual.reps?.let { rp.setText(it.toString()) }
+        // The two boxes take whatever this exercise records
+        val boxes = listOfNotNull(measure.first?.let { it to wt }, measure.second to rp).toMap()
+        if (measure.first == null) wt.visibility = View.INVISIBLE
+        for ((field, box) in boxes) {
+            box.inputType = when (field) {
+                Measure.Field.REPS -> InputType.TYPE_CLASS_NUMBER
+                Measure.Field.TIME -> InputType.TYPE_CLASS_DATETIME or InputType.TYPE_DATETIME_VARIATION_TIME
+                else -> InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            }
+            when (field) {
+                Measure.Field.WEIGHT -> actual.weight?.let { box.setText(FormulaEngine.formatWeight(it)) }
+                Measure.Field.REPS -> actual.reps?.let { box.setText(it.toString()) }
+                Measure.Field.TIME -> actual.seconds?.let { box.setText(Seconds.format(it)) }
+                Measure.Field.DISTANCE -> actual.distance?.let { box.setText(FormulaEngine.formatWeight(it)) }
+            }
+            // Ghost text shows the prescription; the noose commits it
+            box.hint = when (field) {
+                Measure.Field.WEIGHT -> plannedWeight?.let { FormulaEngine.formatWeight(it) } ?: "wt"
+                Measure.Field.REPS -> if (ps?.isAmrap == true) "max" else if (fixedReps) ps!!.reps.toString() else "rep"
+                Measure.Field.TIME -> "m:ss"
+                Measure.Field.DISTANCE -> distanceUnit
+            }
+        }
         actual.rir?.let { rir.setText(FormulaEngine.formatWeight(it)) }
-
-        // Ghost text shows the prescription; the noose commits it
-        if (plannedWeight != null) wt.hint = FormulaEngine.formatWeight(plannedWeight)
-        rp.hint = if (ps.isAmrap) "max" else if (fixedReps) ps.reps.toString() else "rep"
+        fun text(field: Measure.Field) = boxes[field]?.text?.toString()?.trim().orEmpty()
+        fun isDone() = text(Measure.Field.REPS).toIntOrNull() != null || Seconds.parse(text(Measure.Field.TIME)) != null ||
+            text(Measure.Field.DISTANCE).toDoubleOrNull() != null
 
         fun refresh() {
-            saveBtn.isSelected = rp.text.toString().toIntOrNull() != null
+            saveBtn.isSelected = isDone()
             noteBtn.isSelected = note.isNotBlank()
         }
         refresh()
 
         // Everything typed is saved at once. Once a set is logged its prescription is frozen with it.
-        val wasLogged = actual.reps != null
+        val wasLogged = actual.done
         fun save() {
             dao.updateActualSet(ActualSet(
                 id = actual.id, workoutLogId = actual.workoutLogId,
                 exerciseId = actual.exerciseId, setNumber = actual.setNumber,
-                weight = wt.text.toString().toDoubleOrNull(), reps = rp.text.toString().toIntOrNull(),
+                weight = text(Measure.Field.WEIGHT).toDoubleOrNull(), reps = text(Measure.Field.REPS).toIntOrNull(),
+                seconds = Seconds.parse(text(Measure.Field.TIME)), distance = text(Measure.Field.DISTANCE).toDoubleOrNull(),
                 notes = note,
                 plannedWeight = if (wasLogged) actual.plannedWeight ?: plannedWeight else plannedWeight,
                 plannedReps = if (wasLogged) actual.plannedReps.ifBlank { plannedReps } else plannedReps,
@@ -367,22 +468,27 @@ class MainActivity : AppCompatActivity() {
 
         // The noose: commit the set as prescribed (or as typed), then rest
         saveBtn.setOnClickListener {
-            if (wt.text.isBlank() && plannedWeight != null) wt.setText(FormulaEngine.formatWeight(plannedWeight))
-            if (rp.text.isBlank()) {
+            if (measure.first == Measure.Field.WEIGHT && wt.text.isBlank() && plannedWeight != null)
+                wt.setText(FormulaEngine.formatWeight(plannedWeight))
+            if (measure.second == Measure.Field.REPS && rp.text.isBlank()) {
                 if (!fixedReps) {
                     rp.requestFocus()
                     toast("Enter the reps you got, then tap again.")
                     return@setOnClickListener
                 }
-                rp.setText(ps.reps.toString())
+                rp.setText(ps!!.reps.toString())
+            }
+            if (!isDone()) {
+                rp.requestFocus()
+                toast("Enter what you did, then tap again.")
+                return@setOnClickListener
             }
             save()
-            val weight = wt.text.toString().toDoubleOrNull()
-            val reps = rp.text.toString().toIntOrNull()
-            if (reps == null) return@setOnClickListener
             if (prefs.getBoolean("restAutoStart", true)) startRest(restSeconds)
             // Auto-detect new 1RM from AMRAP sets
-            if (ps.isAmrap && weight != null && reps > 0) checkAndUpdate1RM(actual.exerciseId, weight, reps)
+            val weight = text(Measure.Field.WEIGHT).toDoubleOrNull()
+            val reps = text(Measure.Field.REPS).toIntOrNull()
+            if (ps?.isAmrap == true && weight != null && reps != null && reps > 0) checkAndUpdate1RM(actual.exerciseId, weight, reps)
         }
 
         noteBtn.setOnClickListener {
@@ -397,6 +503,91 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("Save") { _, _ -> note = input.text.toString().trim(); save() }
                 .setNegativeButton("Cancel", null).show()
         }
+    }
+
+    // --- The exercise list: add exercises to a session, add new ones, choose how each is recorded ---
+
+    /** Search the exercise list and choose one, or make a new one. */
+    private fun pickExercise(title: String, showMeasure: Boolean = false, onPick: (Exercise) -> Unit) {
+        val all = dao.allExercises().distinctBy { it.name.lowercase() }
+        val label = { e: Exercise -> if (showMeasure) "${e.name}  ·  ${Measure.of(e.measure).label}" else e.name }
+        var shown = all
+        val newLabel = "+ New exercise…"
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, mutableListOf(newLabel) + all.map(label))
+        val search = EditText(this).apply { hint = "Search"; inputType = InputType.TYPE_CLASS_TEXT }
+        val list = ListView(this).apply {
+            this.adapter = adapter
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                (360 * resources.displayMetrics.density).toInt())
+        }
+        search.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
+            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val q = s.toString().trim()
+                shown = all.filter { q.isEmpty() || it.name.contains(q, ignoreCase = true) }
+                adapter.clear()
+                adapter.add(newLabel)
+                adapter.addAll(shown.map(label))
+            }
+        })
+        val layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; addView(search); addView(list) }
+        val dialog = AlertDialog.Builder(this).setTitle(title).setView(padded(layout))
+            .setNegativeButton("Close", null).show()
+        list.setOnItemClickListener { _, _, pos, _ ->
+            dialog.dismiss()
+            if (pos == 0) newExercise(search.text.toString().trim(), onPick) else onPick(shown[pos - 1])
+        }
+    }
+
+    /** An exercise that isn't in the list yet, and what its sets record. */
+    private fun newExercise(name: String = "", then: (Exercise) -> Unit = {}) {
+        val nameInput = EditText(this).apply {
+            setText(name)
+            hint = "Exercise name"
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+        }
+        val measures = measureChoices(Measure.WEIGHT_REPS)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(nameInput)
+            addView(TextView(this@MainActivity).apply { text = "Each set records"; setPadding(0, 24, 0, 0) })
+            addView(measures.first)
+        }
+        AlertDialog.Builder(this).setTitle("New Exercise").setView(padded(layout))
+            .setPositiveButton("Add") { _, _ ->
+                val n = nameInput.text.toString().trim()
+                when {
+                    n.isBlank() -> toast("A name is needed.")
+                    dao.allExercises().any { it.name.equals(n, ignoreCase = true) } -> toast("$n is already in the list.")
+                    else -> {
+                        val exercise = Exercise(name = n, category = "Custom", measure = measures.second().key)
+                        then(exercise.copy(id = dao.insertExercise(exercise)))
+                    }
+                }
+            }.setNegativeButton("Cancel", null).show()
+    }
+
+    /** Radio buttons for each [Measure], and a way to read the one chosen. */
+    private fun measureChoices(selected: Measure): Pair<RadioGroup, () -> Measure> {
+        val group = RadioGroup(this)
+        val ids = Measure.entries.associateBy {
+            val button = RadioButton(this).apply { text = it.label; id = View.generateViewId() }
+            group.addView(button)
+            button.id
+        }
+        group.check(ids.entries.first { it.value == selected }.key)
+        return group to { ids[group.checkedRadioButtonId] ?: Measure.WEIGHT_REPS }
+    }
+
+    private fun chooseMeasure(exercise: Exercise) {
+        val (group, chosen) = measureChoices(Measure.of(exercise.measure))
+        AlertDialog.Builder(this).setTitle("${exercise.name}: each set records").setView(padded(group))
+            .setPositiveButton("Save") { _, _ ->
+                dao.setMeasure(exercise.id, chosen().key)
+                val day = currentProgramDay ?: return@setPositiveButton
+                currentProgram?.let { renderDay(it, day) }
+            }.setNegativeButton("Cancel", null).show()
     }
 
     private fun padded(v: View): View {
@@ -549,6 +740,9 @@ class MainActivity : AppCompatActivity() {
             setSelection(programs.indexOfFirst { it.id == currentProgramId }.coerceAtLeast(0))
         }
         layout.addView(program)
+        layout.addView(smallButton("Exercises: add new, or change what a set records") {
+            pickExercise("Exercises", showMeasure = true) { chooseMeasure(it) }
+        })
 
         label("Default rest between sets (seconds)")
         val seconds = EditText(this).apply {
@@ -569,6 +763,14 @@ class MainActivity : AppCompatActivity() {
         units.check(if (unit == "kg") kg.id else lb.id)
         layout.addView(units)
 
+        label("Distance unit (a label only)")
+        val distances = RadioGroup(this).apply { orientation = RadioGroup.HORIZONTAL }
+        val distanceIds = listOf("m", "km", "yd", "mi").associateBy { u ->
+            RadioButton(this).apply { text = u; id = View.generateViewId() }.also { distances.addView(it) }.id
+        }
+        distances.check(distanceIds.entries.first { it.value == distanceUnit }.key)
+        layout.addView(distances)
+
         label("Round calculated weights to the nearest")
         val increment = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
@@ -586,6 +788,7 @@ class MainActivity : AppCompatActivity() {
                     .putBoolean("restSound", sound.isChecked)
                     .putBoolean("keepScreenOn", screenOn.isChecked)
                     .putString("unit", if (units.checkedRadioButtonId == kg.id) "kg" else "lb")
+                    .putString("distanceUnit", distanceIds[distances.checkedRadioButtonId] ?: "m")
                     .putFloat("increment", step)
                     .apply()
                 FormulaEngine.increment = step.toDouble()
@@ -700,11 +903,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun showSession(s: SessionRow, title: String) {
         val lines = dao.actualSetsForLog(s.logId)
-            .filter { it.reps != null || it.weight != null }
+            .filter { it.done || it.weight != null }
             .groupBy { it.exerciseName }
             .map { (name, sets) ->
                 name + "\n" + sets.joinToString("\n") {
-                    "   ${FormulaEngine.formatWeight(it.weight)} × ${it.reps ?: "—"}" +
+                    "   ${describe(it.weight, it.reps, it.seconds, it.distance)}" +
                         (it.rir?.let { r -> "  RIR ${FormulaEngine.formatWeight(r)}" } ?: "") +
                         if (it.notes.isNotBlank()) "  (${it.notes})" else ""
                 }
@@ -737,7 +940,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun exportCsv() {
         share(listOf(
-            CsvExport.exportLog(this, dao.allActualsForExport(), unit),
+            CsvExport.exportLog(this, dao.allActualsForExport(), unit, distanceUnit),
             CsvExport.exportMaxes(this, dao.maxHistoryForExport(), unit)
         ), "text/csv", "Export Prayerbook")
     }
@@ -752,7 +955,6 @@ class MainActivity : AppCompatActivity() {
             "Import Program (CSV)" to { importLauncher.launch(arrayOf("text/*", "application/json", "*/*")) },
             "Export Program (CSV)" to ::exportProgram,
             "Delete Program" to ::deleteProgram,
-            "Add Exercise" to ::promptAddExercise,
             "Back Up Everything" to ::backup,
             "Restore From Backup" to { restoreLauncher.launch(arrayOf("*/*")) }
         )
@@ -914,15 +1116,6 @@ class MainActivity : AppCompatActivity() {
         dao.upsertState(state.copy(currentWeek = nextWeek, currentDay = 0, cycleCount = newCycle))
         toast("Week ${nextWeek + 1} of ${prog.cycleWeeks}")
         showProgram()
-    }
-
-    private fun promptAddExercise() {
-        val input = EditText(this).apply { hint = "Exercise name" }
-        AlertDialog.Builder(this).setTitle("New Exercise").setView(padded(input))
-            .setPositiveButton("Add") { _, _ ->
-                val name = input.text.toString().trim()
-                if (name.isNotBlank()) dao.insertExercise(Exercise(name = name))
-            }.show()
     }
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()

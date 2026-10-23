@@ -8,7 +8,8 @@ data class Exercise(
     val name: String,
     val category: String = "",
     val isMainLift: Boolean = false,
-    @ColumnInfo(defaultValue = "0") val restSeconds: Int = 0 // lifter's own rest for this exercise; 0 = none
+    @ColumnInfo(defaultValue = "0") val restSeconds: Int = 0, // lifter's own rest for this exercise; 0 = none
+    @ColumnInfo(defaultValue = "weight_reps") val measure: String = Measure.WEIGHT_REPS.key // what a set records
 )
 
 @Entity(
@@ -98,7 +99,9 @@ data class ActualSet(
     val notes: String = "",
     val plannedWeight: Double? = null,                         // what was prescribed when logged
     @ColumnInfo(defaultValue = "") val plannedReps: String = "",
-    val rir: Double? = null                                   // reps in reserve
+    val rir: Double? = null,                                  // reps in reserve
+    val seconds: Int? = null,                                 // timed sets: holds, carries, cardio
+    val distance: Double? = null                              // in the lifter's distance unit
 )
 
 /** Every change to a one-rep max, so progress leaves a trail. */

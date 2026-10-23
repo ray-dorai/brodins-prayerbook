@@ -31,7 +31,7 @@ class MigrationTest {
     }
 
     private fun createVersion3() = createDatabase(3) { db ->
-            db.execSQL("INSERT INTO Exercise VALUES (1,'Bench Press','Chest',1), (2,'KB Row (1-arm)','Back',0)")
+            db.execSQL("INSERT INTO Exercise VALUES (1,'Bench Press','Chest',1), (2,'KB Row (1-arm)','Back',0), (3,'Plank','Abs',0)")
             db.execSQL("INSERT INTO Program VALUES (1,'High Frequency Strength','','block',6,5,'',1), (2,'5/3/1','','block',4,4,'',1)")
             db.execSQL("INSERT INTO ProgramDay VALUES (1,1,0,0,'Mon — Heavy bench'), (2,1,5,0,'Mon — Bench realization'), (3,2,0,0,'Bench Day')")
             db.execSQL("""INSERT INTO PlannedSet (id, programDayId, exerciseId, setNumber, reps, weightFormula, isAmrap, note) VALUES
@@ -63,7 +63,13 @@ class MigrationTest {
         assertEquals(listOf(120, 60), dao.plannedSetsForDay(1).map { it.restSeconds })
         assertEquals(listOf(180, 120), dao.plannedSetsForDay(2).map { it.restSeconds })
         assertEquals(listOf(0), dao.plannedSetsForDay(3).map { it.restSeconds })
-        assertEquals(listOf(0, 0), dao.allExercises().map { it.restSeconds })
+        assertEquals(listOf(0, 0, 0), dao.allExercises().map { it.restSeconds })
+
+        // 7 → 8: exercises learn what their sets record
+        assertEquals(mapOf("Bench Press" to "weight_reps", "KB Row (1-arm)" to "weight_reps", "Plank" to "time"),
+            dao.allExercises().associate { it.name to it.measure })
+        assertNull(set.seconds)
+        assertNull(set.distance)
     }
 
     @Test fun effortLoggedAsRpeBecomesRepsInReserve() {

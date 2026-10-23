@@ -14,16 +14,20 @@ class CsvExportTest {
             ExportRow("2026-10-05", "High Frequency Strength", 1, 1, "Mon — Heavy bench, light squat", true,
                 "Bench Press", 1, 142.5, "1", 145.0, 1, 2.5, "fast, \"easy\""),
             // No program, nothing prescribed, only a weight typed
-            ExportRow("not a date", "", 2, 0, "", false, "KB Curl", 2, null, "", 35.0, null, null, "")
+            ExportRow("not a date", "", 2, 0, "", false, "KB Curl", 2, null, "", 35.0, null, null, ""),
+            // Timed and distance work
+            ExportRow("2026-10-06", "", 1, 0, "", false, "Farmers Walk", 1, null, "", 70.0, null, null, "",
+                seconds = 45, distance = 40.0)
         ), "lb")
 
         assertEquals("prayerbook_log.csv", file.name)
         assertEquals(
             "date,weekday,program,cycle,week,day,session_finished,exercise,set," +
-                "planned_weight,planned_reps,weight,reps,rir,notes,unit\n" +
+                "planned_weight,planned_reps,weight,reps,seconds,distance,rir,notes,unit,distance_unit\n" +
             "2026-10-05,Monday,High Frequency Strength,1,1,\"Mon — Heavy bench, light squat\",yes,Bench Press,1," +
-                "142.5,1,145,1,2.5,\"fast, \"\"easy\"\"\",lb\n" +
-            "not a date,,,2,,,no,KB Curl,2,,,35,,,,lb\n",
+                "142.5,1,145,1,,,2.5,\"fast, \"\"easy\"\"\",lb,m\n" +
+            "not a date,,,2,,,no,KB Curl,2,,,35,,,,,,lb,m\n" +
+            "2026-10-06,Tuesday,,1,,,no,Farmers Walk,1,,,70,,45,40,,,lb,m\n",
             file.readText())
     }
 
@@ -47,8 +51,8 @@ class CsvExportTest {
         ), "lb")
 
         val cells = ProgramCsv.splitLine(file.readLines()[1])
-        assertEquals(16, cells.size)
+        assertEquals(19, cells.size)
         assertEquals("Mon, heavy", cells[5])
-        assertEquals("a \"note\", with commas", cells[14])
+        assertEquals("a \"note\", with commas", cells[16])
     }
 }

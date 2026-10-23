@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [Exercise::class, UserMax::class, Program::class, ProgramDay::class,
                 PlannedSet::class, WorkoutLog::class, ActualSet::class, UserProgramState::class,
                 MaxHistory::class],
-    version = 7
+    version = 8
 )
 abstract class PrayerBookDb : RoomDatabase() {
     abstract fun dao(): PrayerBookDao
@@ -92,6 +92,17 @@ abstract class PrayerBookDb : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Exercises recorded by time or distance as well as weight × reps
+                db.execSQL("ALTER TABLE Exercise ADD COLUMN measure TEXT NOT NULL DEFAULT 'weight_reps'")
+                db.execSQL("ALTER TABLE ActualSet ADD COLUMN seconds INTEGER")
+                db.execSQL("ALTER TABLE ActualSet ADD COLUMN distance REAL")
+                for ((name, measure) in ExerciseLibrary.measures)
+                    db.execSQL("UPDATE Exercise SET measure = ? WHERE name = ?", arrayOf(measure.key, name))
+            }
+        }
+
         private const val DB_NAME = "prayerbook.db"
 
         /** Copy the whole database to [dest]. Flushes pending writes first. */
@@ -123,7 +134,7 @@ abstract class PrayerBookDb : RoomDatabase() {
         @Volatile private var instance: PrayerBookDb? = null
         fun get(ctx: Context): PrayerBookDb = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(ctx.applicationContext, PrayerBookDb::class.java, DB_NAME)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).allowMainThreadQueries().build().also { instance = it }
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8).allowMainThreadQueries().build().also { instance = it }
         }
     }
 }
