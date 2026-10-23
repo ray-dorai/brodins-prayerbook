@@ -121,6 +121,42 @@ class ProgramPorterTest {
         assertEquals(sets("High Frequency Strength"), sets("Copy"))
     }
 
+    /** Every percentage in Zero to Powerlifting is of the squat, bench or deadlift max, so three maxes set every weight. */
+    @Test fun zeroToPowerliftingRunsOffThreeMaxes() {
+        ExerciseLibrary.seed(dao)
+        val rows = ProgramCsv.parse(File("../programs/zero_to_powerlifting.csv").readText())
+        assertTrue(ProgramPorter.importCsv(dao, "Zero to Powerlifting", rows).success)
+        val byName = dao.allExercises().associateBy { it.name }
+        listOf("Squat" to 137.0, "Bench Press" to 91.0, "Deadlift" to 117.5)
+            .forEach { (lift, max) -> Maxes.set(dao, byName.getValue(lift).id, max, "2026-10-22", "onboarding") }
+        FormulaEngine.increment = 1.0
+
+        val program = program("Zero to Powerlifting")
+        assertEquals(24, program.cycleWeeks)
+        val days = dao.daysForProgram(program.id)
+        assertEquals(23 * 3 + 4, days.size)
+        val sets = days.flatMap { dao.plannedSetsForDay(it.id) }
+        assertEquals(679, sets.size)
+        assertEquals("only the three lifts are worked out from a max",
+            setOf("Squat", "Bench Press", "Deadlift"), sets.filter { ProgramCsv.usesMax(it.weightFormula) }.map { it.exerciseName }.toSet())
+
+        fun weights(week: Int, day: Int) = dao.plannedSetsForDay(dao.dayFor(program.id, week - 1, day - 1)!!.id).map {
+            val max = dao.maxFor(it.exerciseId)
+            "${it.exerciseName} ${FormulaEngine.formatWeight(FormulaEngine.resolve(it.weightFormula, max?.trainingMax, max?.oneRepMax))}"
+        }.distinct()
+        // Week 1 starts at the low end of each range: squat 50% of 137, bench 50% of 91, deadlift 55% of 117.5
+        assertEquals(listOf("Squat 69", "Bench Press 46", "Deadlift 65", "Row —"), weights(1, 1))
+        // Week 22's heavy singles at 88%
+        assertEquals(listOf("Squat 121", "Squat 103", "Bench Press 80", "Bench Press 68"), weights(22, 1))
+        assertEquals("Meet Day", dao.dayFor(program.id, 23, 3)!!.name)
+        // Weights follow her effort through week 21: +2.5 lb squat and deadlift, +1 lb bench; none in the peak and taper
+        val steps = days.flatMap { day -> dao.plannedSetsForDay(day.id).map { day.weekIndex + 1 to it } }
+            .filter { (_, set) -> ProgramCsv.usesMax(set.weightFormula) }
+        assertEquals(mapOf("Squat" to setOf(2.5), "Bench Press" to setOf(1.0), "Deadlift" to setOf(2.5)),
+            steps.filter { it.first <= 21 }.groupBy({ it.second.exerciseName }, { it.second.progressStep }).mapValues { it.value.toSet() })
+        assertTrue(steps.filter { it.first >= 22 }.all { it.second.progressStep == 0.0 })
+    }
+
     @Test fun olderJsonExportsStillImport() {
         val json = """{"name":"Old","cycleWeeks":1,"daysPerWeek":1,"days":[{"weekIndex":0,"dayIndex":0,"name":"OHP Day",
             "sets":[{"exercise":"Overhead Press","set":1,"reps":5,"formula":"TM*0.65","amrap":false},

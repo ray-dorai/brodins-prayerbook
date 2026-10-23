@@ -17,14 +17,14 @@ object CsvExport {
         val file = File(dir(context), "prayerbook_log.csv")
         file.bufferedWriter().use { w ->
             w.write("date,weekday,program,cycle,week,day,session_finished,exercise,set," +
-                "planned_weight,planned_reps,weight,reps,rpe,notes,unit\n")
+                "planned_weight,planned_reps,weight,reps,rir,notes,unit\n")
             rows.forEach { r ->
                 val weekday = try {
                     LocalDate.parse(r.date).dayOfWeek.getDisplayName(TextStyle.FULL, Locale.US)
                 } catch (_: Exception) { "" }
                 w.write(line(r.date, weekday, r.program, r.cycle, if (r.week > 0) r.week else "", r.day,
                     if (r.completed) "yes" else "no", r.exercise, r.set,
-                    num(r.plannedWeight), r.plannedReps, num(r.weight), r.reps, num(r.rpe), r.notes, unit))
+                    num(r.plannedWeight), r.plannedReps, num(r.weight), r.reps, num(r.rir), r.notes, unit))
             }
         }
         return file

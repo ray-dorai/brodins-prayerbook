@@ -45,6 +45,26 @@ class ProgramCsvTest {
         assertEquals(csv, ProgramCsv.format(rows))
     }
 
+    @Test fun aProgressColumnIsReadAndWrittenOnlyWhenUsed() {
+        val csv = ProgramCsv.HEADER + ",progress\n" +
+            "1,1,Day 1,Squat,3,5,50% 1RM,,,2.5\n" +
+            "1,1,Day 1,Row,2,8-12,,,,\n"
+        val rows = ProgramCsv.parse(csv)
+        assertEquals(listOf(2.5, 0.0), rows.map { it.progress })
+        assertEquals(csv, ProgramCsv.format(rows))
+        assertEquals(1.0, ProgramCsv.parse("exercise,reps,progress\nBench Press,5,+1\n").single().progress, 0.0)
+        assertTrue(ProgramCsv.format(rows.map { it.copy(progress = 0.0) }).startsWith(ProgramCsv.HEADER + "\n"))
+    }
+
+    @Test fun aProgressThatIsNotAWeightNamesItsRow() {
+        try {
+            ProgramCsv.parse("exercise,reps,progress\nSquat,5,a little\n")
+            fail("expected an error")
+        } catch (e: IllegalArgumentException) {
+            assertEquals("Row 2: progress must be a weight, got \"a little\"", e.message)
+        }
+    }
+
     @Test fun onlyExerciseAndRepsAreRequired() {
         val rows = ProgramCsv.parse("Exercise,Reps\nPull-Up,8\n")
         assertEquals(CsvSet(1, 1, "", "Pull-Up", 1, 8, "", false, "", ""), rows.single())

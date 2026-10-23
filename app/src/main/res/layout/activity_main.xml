@@ -35,7 +35,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Brodin's Prayerbook"
-                android:fontFamily="@font/unifraktur"
+                android:fontFamily="@font/jacquard12"
                 android:textSize="28sp"
                 android:textColor="@color/amber"
                 android:gravity="center" />
@@ -46,7 +46,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="13sp"
-                android:fontFamily="@font/crimson_text"
+                android:fontFamily="@font/inconsolata"
                 android:textColor="@color/lapis"
                 android:gravity="center"
                 android:paddingTop="2dp"
@@ -126,7 +126,7 @@
             android:layout_weight="1"
             android:text="The Prescription"
             android:textSize="15sp"
-            android:fontFamily="@font/crimson_text"
+            android:fontFamily="@font/inconsolata"
             android:textColor="@color/amber_glow"
             android:textStyle="bold" />
 
@@ -136,7 +136,7 @@
             android:layout_weight="1"
             android:text="The Offering"
             android:textSize="15sp"
-            android:fontFamily="@font/crimson_text"
+            android:fontFamily="@font/inconsolata"
             android:textColor="@color/amber_glow"
             android:textStyle="bold"
             android:gravity="center" />
@@ -178,7 +178,7 @@
         android:gravity="center"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:fontFamily="@font/crimson_text"
+        android:fontFamily="@font/inconsolata"
         android:textColor="@color/text_dim"
         android:background="@drawable/rest_strip"
         android:clickable="true"
@@ -206,7 +206,7 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/btn_text"
-            android:fontFamily="@font/crimson_text"
+            android:fontFamily="@font/inconsolata"
             android:background="@drawable/btn_medieval"
             android:paddingHorizontal="14dp"
             android:layout_marginEnd="8dp" />
@@ -219,7 +219,7 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/btn_text"
-            android:fontFamily="@font/crimson_text"
+            android:fontFamily="@font/inconsolata"
             android:background="@drawable/btn_medieval"
             android:paddingHorizontal="16dp"
             android:layout_marginEnd="8dp" />
@@ -232,7 +232,7 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/btn_text"
-            android:fontFamily="@font/crimson_text"
+            android:fontFamily="@font/inconsolata"
             android:background="@drawable/btn_medieval"
             android:paddingHorizontal="16dp" />
     </LinearLayout>

@@ -97,7 +97,7 @@ interface PrayerBookDao {
     @Query("""
         SELECT w.date, w.programName AS program, w.cycle, w.week, w.dayName AS day, w.completed,
                e.name AS exercise, a.setNumber AS 'set', a.plannedWeight, a.plannedReps,
-               a.weight, a.reps, a.rpe, a.notes
+               a.weight, a.reps, a.rir, a.notes
         FROM ActualSet a JOIN WorkoutLog w ON w.id = a.workoutLogId JOIN Exercise e ON e.id = a.exerciseId
         WHERE a.reps IS NOT NULL OR a.weight IS NOT NULL OR a.notes != ''
         ORDER BY w.date, w.id, a.setNumber
@@ -108,14 +108,14 @@ interface PrayerBookDao {
 data class PlannedSetWithName(
     val id: Long, val programDayId: Long, val exerciseId: Long,
     val setNumber: Int, val reps: Int, val weightFormula: String,
-    val isAmrap: Boolean, val repsText: String, val note: String, val restSeconds: Int,
+    val isAmrap: Boolean, val repsText: String, val note: String, val restSeconds: Int, val progressStep: Double,
     val exerciseName: String, val exerciseRest: Int
 )
 
 data class ActualSetWithName(
     val id: Long, val workoutLogId: Long, val exerciseId: Long,
     val setNumber: Int, val reps: Int?, val weight: Double?,
-    val notes: String, val plannedWeight: Double?, val plannedReps: String, val rpe: Double?,
+    val notes: String, val plannedWeight: Double?, val plannedReps: String, val rir: Double?,
     val exerciseName: String
 )
 
@@ -123,7 +123,7 @@ data class ExportRow(
     val date: String, val program: String, val cycle: Int, val week: Int, val day: String,
     val completed: Boolean, val exercise: String, val set: Int,
     val plannedWeight: Double?, val plannedReps: String,
-    val weight: Double?, val reps: Int?, val rpe: Double?, val notes: String
+    val weight: Double?, val reps: Int?, val rir: Double?, val notes: String
 )
 
 data class SessionRow(

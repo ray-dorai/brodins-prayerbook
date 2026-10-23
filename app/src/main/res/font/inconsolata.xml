@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Inconsolata has no italic; Android slants the regular face where italic is asked for -->
+<font-family xmlns:android="http://schemas.android.com/apk/res/android">
+    <font android:fontStyle="normal" android:fontWeight="400" android:font="@font/inconsolata_regular" />
+    <font android:fontStyle="normal" android:fontWeight="700" android:font="@font/inconsolata_bold" />
+</font-family>

@@ -164,7 +164,7 @@ object ProgramPorter {
         for (day in dao.daysForProgram(programId)) {
             for (s in dao.plannedSetsForDay(day.id)) {
                 val row = CsvSet(day.weekIndex + 1, day.dayIndex + 1, day.name, s.exerciseName, 1,
-                    s.reps, s.repsText, s.isAmrap, s.weightFormula, s.note, s.restSeconds)
+                    s.reps, s.repsText, s.isAmrap, s.weightFormula, s.note, s.restSeconds, s.progressStep)
                 val last = rows.lastOrNull()
                 // Fold runs of identical sets into one row
                 if (last != null && last.copy(sets = 1) == row) rows[rows.size - 1] = last.copy(sets = last.sets + 1)
@@ -210,7 +210,7 @@ object ProgramPorter {
                     dao.insertPlannedSet(PlannedSet(
                         programDayId = dayId, exerciseId = ex.id, setNumber = ++n, reps = r.reps,
                         weightFormula = r.formula, isAmrap = r.amrap, repsText = r.repsText, note = r.note,
-                        restSeconds = r.rest
+                        restSeconds = r.rest, progressStep = r.progress
                     ))
                     sets++
                 }

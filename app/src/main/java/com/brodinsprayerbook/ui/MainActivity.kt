@@ -319,7 +319,7 @@ class MainActivity : AppCompatActivity() {
                                  plannedWeight: Double?, plannedReps: String, restSeconds: Int) {
         val wt = row.findViewById<EditText>(R.id.inputWeight)
         val rp = row.findViewById<EditText>(R.id.inputReps)
-        val rpe = row.findViewById<EditText>(R.id.inputRpe)
+        val rir = row.findViewById<EditText>(R.id.inputRir)
         val noteBtn = row.findViewById<View>(R.id.btnNote)
         val saveBtn = row.findViewById<View>(R.id.btnSaveSet)
         var note = actual.notes
@@ -328,7 +328,7 @@ class MainActivity : AppCompatActivity() {
 
         actual.weight?.let { wt.setText(FormulaEngine.formatWeight(it)) }
         actual.reps?.let { rp.setText(it.toString()) }
-        actual.rpe?.let { rpe.setText(FormulaEngine.formatWeight(it)) }
+        actual.rir?.let { rir.setText(FormulaEngine.formatWeight(it)) }
 
         // Ghost text shows the prescription; the noose commits it
         if (plannedWeight != null) wt.hint = FormulaEngine.formatWeight(plannedWeight)
@@ -350,7 +350,7 @@ class MainActivity : AppCompatActivity() {
                 notes = note,
                 plannedWeight = if (wasLogged) actual.plannedWeight ?: plannedWeight else plannedWeight,
                 plannedReps = if (wasLogged) actual.plannedReps.ifBlank { plannedReps } else plannedReps,
-                rpe = rpe.text.toString().toDoubleOrNull()
+                rir = rir.text.toString().toDoubleOrNull()
             ))
             refresh()
         }
@@ -362,7 +362,7 @@ class MainActivity : AppCompatActivity() {
         }
         wt.addTextChangedListener(watcher)
         rp.addTextChangedListener(watcher)
-        rpe.addTextChangedListener(watcher)
+        rir.addTextChangedListener(watcher)
 
         // The noose: commit the set as prescribed (or as typed), then rest
         saveBtn.setOnClickListener {
@@ -595,7 +595,13 @@ class MainActivity : AppCompatActivity() {
         val state = dao.stateFor(prog.id) ?: return
         val log = dao.logFor(dateStr, day.id) ?: return
         if (log.completed) { confirmReopen(log, day, state); return }
-        dao.updateWorkoutLog(log.copy(completed = true))
+        // Effort moves the maxes once per session, even if it is reopened and finished again
+        val progress = if (log.progressed) emptyList() else Progression.afterSession(dao, log.id, day.id, dateStr)
+        dao.updateWorkoutLog(log.copy(completed = true, progressed = true))
+        val progressNote = progress.joinToString("") { c ->
+            val change = c.step?.let { "+${FormulaEngine.formatWeight(it)} $unit" } ?: "down 5%"
+            "${c.exercise}: $change next time\n"
+        }
 
         val days = dao.daysForProgram(prog.id)
         val doneIdx = days.indexOfFirst { it.id == day.id }
@@ -605,7 +611,7 @@ class MainActivity : AppCompatActivity() {
 
         // Redoing an earlier session is recorded but doesn't move the program backwards
         if (doneIdx < pointerIdx) {
-            toast("Session recorded.")
+            longToast("${progressNote}Session recorded.")
             pendingDayId = day.id
             setupProgramSpinner()
             return
@@ -615,7 +621,8 @@ class MainActivity : AppCompatActivity() {
         if (next != null) {
             dao.upsertState(state.copy(currentWeek = next.weekIndex, currentDay = next.dayIndex))
             val weekNote = if (next.weekIndex != day.weekIndex) "Week ${next.weekIndex + 1} begins. " else ""
-            toast("${weekNote}Next: ${next.name.ifBlank { "Day ${next.dayIndex + 1}" }}")
+            val nextNote = "${weekNote}Next: ${next.name.ifBlank { "Day ${next.dayIndex + 1}" }}"
+            if (progress.isEmpty()) toast(nextNote) else longToast(progressNote + nextNote)
             setupProgramSpinner()
         } else {
             val changes = applyCycleMaxes(prog.id, state.cycleCount)
@@ -624,7 +631,7 @@ class MainActivity : AppCompatActivity() {
                 else "New maxes from what you lifted:\n\n" + changes.joinToString("\n")
             AlertDialog.Builder(this)
                 .setTitle("Cycle ${state.cycleCount} complete")
-                .setMessage("$summary\n\nCycle ${state.cycleCount + 1} begins at week 1.")
+                .setMessage("$progressNote${if (progress.isEmpty()) "" else "\n"}$summary\n\nCycle ${state.cycleCount + 1} begins at week 1.")
                 .setPositiveButton("Onward", null)
                 .show()
             setupProgramSpinner()
@@ -636,7 +643,7 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Reopen this session?")
             .setMessage("It will be marked unfinished and become the next session due. " +
-                "Sets you saved stay saved. Maxes changed at the end of a cycle are not changed back.")
+                "Sets you saved stay saved. Maxes changed when it was finished are not changed back.")
             .setPositiveButton("Reopen") { _, _ ->
                 dao.updateWorkoutLog(log.copy(completed = false))
                 dao.upsertState(state.copy(
@@ -688,7 +695,7 @@ class MainActivity : AppCompatActivity() {
             .map { (name, sets) ->
                 name + "\n" + sets.joinToString("\n") {
                     "   ${FormulaEngine.formatWeight(it.weight)} × ${it.reps ?: "—"}" +
-                        (it.rpe?.let { r -> "  @${FormulaEngine.formatWeight(r)}" } ?: "") +
+                        (it.rir?.let { r -> "  RIR ${FormulaEngine.formatWeight(r)}" } ?: "") +
                         if (it.notes.isNotBlank()) "  (${it.notes})" else ""
                 }
             }

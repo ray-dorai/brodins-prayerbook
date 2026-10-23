@@ -26,5 +26,7 @@
     <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/parchment</item>
         <item name="colorAccent">@color/crimson</item>
+        <!-- Everything not set in Jacquard 12, dialogs included -->
+        <item name="android:fontFamily">@font/inconsolata</item>
     </style>
 </resources>

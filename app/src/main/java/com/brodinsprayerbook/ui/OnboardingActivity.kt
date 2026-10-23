@@ -45,8 +45,8 @@ class OnboardingActivity : AppCompatActivity() {
         val textDim = getColor(R.color.text_dim)
         val textLight = getColor(R.color.text_light)
 
-        val headerFont = try { ResourcesCompat.getFont(this, R.font.unifraktur) } catch (_: Exception) { null }
-        val bodyFont = try { ResourcesCompat.getFont(this, R.font.crimson_text) } catch (_: Exception) { null }
+        val headerFont = try { ResourcesCompat.getFont(this, R.font.jacquard12) } catch (_: Exception) { null }
+        val bodyFont = try { ResourcesCompat.getFont(this, R.font.inconsolata) } catch (_: Exception) { null }
 
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -67,7 +67,7 @@ class OnboardingActivity : AppCompatActivity() {
         }
         layout.addView(logo)
 
-        // Title — blackletter
+        // Title — Jacquard 12
         val title = TextView(this).apply {
             text = "Brodin's\nPrayerbook"
             textSize = 34f
@@ -91,7 +91,7 @@ class OnboardingActivity : AppCompatActivity() {
         val subtitle = TextView(this).apply {
             text = "Declare thy maximal offerings, brother.\nAll programmes shall be reckoned from these.\nLeave blank any lift thou dost not train."
             textSize = 15f
-            typeface = bodyFont ?: Typeface.SERIF
+            typeface = bodyFont ?: Typeface.MONOSPACE
             setTextColor(textWarm)
             gravity = Gravity.CENTER
             setPadding(0, 0, 0, 40)
@@ -113,7 +113,7 @@ class OnboardingActivity : AppCompatActivity() {
                 hint = "1RM"
                 inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                 textSize = 20f
-                typeface = bodyFont ?: Typeface.SERIF
+                typeface = bodyFont ?: Typeface.MONOSPACE
                 setTextColor(textLight)
                 setHintTextColor(textDim)
                 setBackgroundResource(R.drawable.input_box)

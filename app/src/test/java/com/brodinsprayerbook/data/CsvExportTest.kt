@@ -12,7 +12,7 @@ class CsvExportTest {
     @Test fun theLogIsOneRowPerSet() {
         val file = CsvExport.exportLog(context, listOf(
             ExportRow("2026-10-05", "High Frequency Strength", 1, 1, "Mon — Heavy bench, light squat", true,
-                "Bench Press", 1, 142.5, "1", 145.0, 1, 7.5, "fast, \"easy\""),
+                "Bench Press", 1, 142.5, "1", 145.0, 1, 2.5, "fast, \"easy\""),
             // No program, nothing prescribed, only a weight typed
             ExportRow("not a date", "", 2, 0, "", false, "KB Curl", 2, null, "", 35.0, null, null, "")
         ), "lb")
@@ -20,9 +20,9 @@ class CsvExportTest {
         assertEquals("prayerbook_log.csv", file.name)
         assertEquals(
             "date,weekday,program,cycle,week,day,session_finished,exercise,set," +
-                "planned_weight,planned_reps,weight,reps,rpe,notes,unit\n" +
+                "planned_weight,planned_reps,weight,reps,rir,notes,unit\n" +
             "2026-10-05,Monday,High Frequency Strength,1,1,\"Mon — Heavy bench, light squat\",yes,Bench Press,1," +
-                "142.5,1,145,1,7.5,\"fast, \"\"easy\"\"\",lb\n" +
+                "142.5,1,145,1,2.5,\"fast, \"\"easy\"\"\",lb\n" +
             "not a date,,,2,,,no,KB Curl,2,,,35,,,,lb\n",
             file.readText())
     }

@@ -406,16 +406,16 @@ object ProgramSeeder {
                     ))
                 }
             }
-            /** Ramp of singles: opening single at a set %, small jumps, stop at the target RPE. */
+            /** Ramp of singles: opening single at a set %, small jumps, stop at the target RIR. */
             fun ramp(exercise: Long, startPct: Double, ramps: Int, top: String) {
                 sets(exercise, 1, 1, pct(startPct), note = "start")
                 sets(exercise, ramps, 1, note = "ramp")
                 sets(exercise, 1, 1, note = top)
             }
-            /** Realization day: ramp to an RPE 8 single, then test only if it moved fast. */
+            /** Realization day: ramp to an RIR 2 single, then test only if it moved fast. */
             fun test(exercise: Long) {
                 sets(exercise, 2, 1, note = "ramp", rest = 180)
-                sets(exercise, 1, 1, note = "RPE 8", rest = 180)
+                sets(exercise, 1, 1, note = "RIR 2", rest = 180)
                 sets(exercise, 1, 1, note = "max test, optional", rest = 180)
             }
         }
@@ -446,17 +446,17 @@ object ProgramSeeder {
 
         for (w in 0..4) {
             day(w, 0, "Mon — Heavy bench + light squat") {
-                ramp(bench, 77.5, 3, "top, RPE 7–8")
+                ramp(bench, 77.5, 3, "top, RIR 2–3")
                 sets(bench, 3, 3, pct(heavy[w]))
                 sets(squat, 3, 5, pct(60.0), note = "to 65%")
             }
             day(w, 1, "Tue — Heavy squat + bench volume") {
-                ramp(squat, 77.5, 3, "top, RPE 7–8")
+                ramp(squat, 77.5, 3, "top, RIR 2–3")
                 sets(squat, 3, 3, pct(heavy[w]))
                 sets(bench, 4, 4, pct(benchVol4[w]))
             }
             day(w, 2, "Wed — Heavy trap-bar + light bench") {
-                ramp(trap, 77.5, 3, "top, RPE 7–8")
+                ramp(trap, 77.5, 3, "top, RIR 2–3")
                 sets(trap, 3, 3, pct(trapHeavy[w]))
                 sets(bench, 3, 5, pct(benchLt[w]))
             }
@@ -466,7 +466,7 @@ object ProgramSeeder {
             }
             day(w, 4, "Fri — Trap-bar volume + bench specificity") {
                 sets(trap, 3, 4, pct(trapVol[w]))
-                ramp(bench, 75.0, 2, "top, RPE 7")
+                ramp(bench, 75.0, 2, "top, RIR 3")
                 sets(bench, 3, 3, pct(trapHeavy[w]))
             }
         }

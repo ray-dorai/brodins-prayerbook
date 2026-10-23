@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [Exercise::class, UserMax::class, Program::class, ProgramDay::class,
                 PlannedSet::class, WorkoutLog::class, ActualSet::class, UserProgramState::class,
                 MaxHistory::class],
-    version = 5
+    version = 7
 )
 abstract class PrayerBookDb : RoomDatabase() {
     abstract fun dao(): PrayerBookDao
@@ -73,6 +73,25 @@ abstract class PrayerBookDb : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Effort is logged as reps in reserve, not RPE: RIR = 10 − RPE
+                db.execSQL("ALTER TABLE ActualSet RENAME COLUMN rpe TO rir")
+                db.execSQL("UPDATE ActualSet SET rir = MAX(0, 10 - rir) WHERE rir IS NOT NULL")
+                val hfsDays = "SELECT d.id FROM ProgramDay d JOIN Program p ON p.id = d.programId " +
+                    "WHERE p.name = 'High Frequency Strength' AND p.isBuiltIn = 1"
+                for ((rpe, rir) in listOf("top, RPE 7–8" to "top, RIR 2–3", "top, RPE 7" to "top, RIR 3", "RPE 8" to "RIR 2"))
+                    db.execSQL("UPDATE PlannedSet SET note = ? WHERE note = ? AND programDayId IN ($hfsDays)", arrayOf(rir, rpe))
+            }
+        }
+
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE PlannedSet ADD COLUMN progressStep REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE WorkoutLog ADD COLUMN progressed INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         private const val DB_NAME = "prayerbook.db"
 
         /** Copy the whole database to [dest]. Flushes pending writes first. */
@@ -104,7 +123,7 @@ abstract class PrayerBookDb : RoomDatabase() {
         @Volatile private var instance: PrayerBookDb? = null
         fun get(ctx: Context): PrayerBookDb = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(ctx.applicationContext, PrayerBookDb::class.java, DB_NAME)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).allowMainThreadQueries().build().also { instance = it }
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).allowMainThreadQueries().build().also { instance = it }
         }
     }
 }

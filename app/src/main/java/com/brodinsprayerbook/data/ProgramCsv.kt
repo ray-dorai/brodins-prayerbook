@@ -14,12 +14,14 @@ import java.math.BigDecimal
  * reps:   "5", "5+" (as many as possible), or any text such as "8-12/side"
  * weight: "77.5% 1RM", "65% TM", "85% TM +5", a fixed number, or blank
  * rest:   seconds to rest after each set; blank uses the lifter's default
+ * progress (optional column): weight to add next time when the last set leaves 4+ reps in
+ *          reserve; see [Progression]. Blank means the weight only changes with the max.
  * Only exercise and reps are required. week and day default to 1, sets to 1.
  */
 data class CsvSet(
     val week: Int, val day: Int, val dayName: String, val exercise: String, val sets: Int,
     val reps: Int, val repsText: String, val amrap: Boolean, val formula: String, val note: String,
-    val rest: Int = 0
+    val rest: Int = 0, val progress: Double = 0.0
 )
 
 object ProgramCsv {
@@ -34,6 +36,7 @@ object ProgramCsv {
         val cEx = col("exercise"); val cSets = col("sets"); val cReps = col("reps")
         val cWeight = col("weight"); val cNote = col("note", "notes")
         val cRest = col("rest", "rest_sec", "rest_(sec)", "rest_seconds")
+        val cProgress = col("progress", "progression")
         require(cEx >= 0 && cReps >= 0) { "The first row must name the columns, including exercise and reps" }
 
         return lines.drop(1).mapIndexed { i, line ->
@@ -50,18 +53,25 @@ object ProgramCsv {
                 catch (e: IllegalArgumentException) { throw IllegalArgumentException("Row ${i + 2}: ${e.message}") }
             val formula = try { parseWeight(get(cWeight)) }
                 catch (e: IllegalArgumentException) { throw IllegalArgumentException("Row ${i + 2}: ${e.message}") }
+            val progress = get(cProgress).removePrefix("+").trim().let { v ->
+                if (v.isEmpty()) 0.0
+                else v.toDoubleOrNull()?.takeIf { it >= 0 } ?: throw IllegalArgumentException("Row ${i + 2}: progress must be a weight, got \"$v\"")
+            }
             CsvSet(int(cWeek, "week", 1), int(cDay, "day", 1), get(cDayName), exercise,
-                int(cSets, "sets", 1), reps, repsText, amrap, formula, get(cNote), int(cRest, "rest", 0, min = 0))
+                int(cSets, "sets", 1), reps, repsText, amrap, formula, get(cNote), int(cRest, "rest", 0, min = 0), progress)
         }
     }
 
     fun format(rows: List<CsvSet>): String = buildString {
-        append(HEADER).append('\n')
+        // The progress column only appears in programs that use it
+        val progress = rows.any { it.progress > 0 }
+        append(HEADER).append(if (progress) ",progress\n" else "\n")
         for (r in rows) {
-            append(listOf(r.week, r.day, esc(r.dayName), esc(r.exercise), r.sets,
+            val cells = mutableListOf<Any>(r.week, r.day, esc(r.dayName), esc(r.exercise), r.sets,
                 esc(formatReps(r.reps, r.repsText, r.amrap)), esc(formatWeight(r.formula)),
-                if (r.rest > 0) r.rest else "", esc(r.note)
-            ).joinToString(",")).append('\n')
+                if (r.rest > 0) r.rest else "", esc(r.note))
+            if (progress) cells += if (r.progress > 0) BigDecimal.valueOf(r.progress).stripTrailingZeros().toPlainString() else ""
+            append(cells.joinToString(",")).append('\n')
         }
     }
 

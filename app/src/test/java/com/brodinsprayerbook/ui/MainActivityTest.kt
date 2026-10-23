@@ -184,12 +184,12 @@ class MainActivityTest {
         val row = row("Overhead Press", 1)
         row.weight().setText("47.5")
         row.reps().setText("4")
-        row.findViewById<EditText>(R.id.inputRpe).setText("8.5")
+        row.findViewById<EditText>(R.id.inputRir).setText("1.5")
 
         row.noose().tap()
 
         val set = logged(0, "Overhead Press", 1)
-        assertEquals(listOf(47.5, 4, 8.5), listOf(set.weight, set.reps, set.rpe))
+        assertEquals(listOf(47.5, 4, 1.5), listOf(set.weight, set.reps, set.rir))
         assertEquals("the prescription is kept beside what was done", 50.0, set.plannedWeight!!, 0.0)
     }
 
@@ -362,6 +362,33 @@ class MainActivityTest {
         assertTrue(log(0).completed)
         assertEquals(1, state().currentDay)
         assertEquals("Press Day", selectedDay())
+    }
+
+    @Test fun effortOnTheLastSetRaisesNextTimesWeightOnceWhenTheSessionIsFinished() {
+        // The same program, with the press adding 2.5 lb next time at 4+ in reserve
+        ProgramPorter.importCsv(dao, "Test Block", ProgramCsv.parse(ProgramCsv.HEADER + ",progress\n" +
+            "1,1,Press Day,Overhead Press,2,5,50% 1RM,90,,2.5\n" +
+            "1,2,Squat Day,Squat,1,5,100,,,\n"))
+        program = dao.allPrograms().single().id
+        days = dao.daysForProgram(program)
+        launch()
+        row("Overhead Press", 1).noose().tap()
+        row("Overhead Press", 2).findViewById<EditText>(R.id.inputRir).setText("4")
+        row("Overhead Press", 2).noose().tap()
+
+        tap(R.id.btnFinish)
+
+        assertEquals("Overhead Press: +2.5 lb next time\nNext: Squat Day", toast())
+        assertEquals(105.0, pressMax(), 0.0)
+        assertTrue(log(0).progressed)
+
+        // Reopened and finished again: the same effort does not count twice
+        selectDay(0)
+        tap(R.id.btnFinish)
+        latestDialog().tap(BUTTON_POSITIVE)
+        tap(R.id.btnFinish)
+        assertEquals(105.0, pressMax(), 0.0)
+        assertEquals("Next: Squat Day", toast())
     }
 
     @Test fun skippingAWeekPastTheEndStartsTheNextCycle() {

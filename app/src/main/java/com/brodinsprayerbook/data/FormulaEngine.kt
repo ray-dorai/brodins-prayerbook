@@ -44,6 +44,17 @@ object FormulaEngine {
         return roundToPlate(result)
     }
 
+    /**
+     * How much of the one-rep max a formula's weight is, ignoring any fixed amount added:
+     * "1RM*0.775" → 0.775, "TM*0.65" → 0.65 × [trainingMaxPct]. Null for fixed or blank weights.
+     */
+    fun shareOfMax(formula: String, trainingMaxPct: Double): Double? {
+        val m = Regex("""^(TM|1RM)(?:\*(\d*\.?\d+))?(?:[+-]\d+(?:\.\d+)?)?$""", RegexOption.IGNORE_CASE)
+            .find(formula.replace(" ", "")) ?: return null
+        val mult = m.groupValues[2].ifEmpty { "1" }.toDouble()
+        return if (m.groupValues[1].equals("TM", ignoreCase = true)) mult * trainingMaxPct else mult
+    }
+
     private fun step() = if (increment > 0) increment else 5.0
 
     /** Round to the nearest loadable weight */

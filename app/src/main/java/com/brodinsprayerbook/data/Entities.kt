@@ -64,7 +64,8 @@ data class PlannedSet(
     val isAmrap: Boolean = false,
     @ColumnInfo(defaultValue = "") val repsText: String = "", // shown instead of reps, e.g. "8–12/side"
     @ColumnInfo(defaultValue = "") val note: String = "",     // short cue shown after the prescription
-    @ColumnInfo(defaultValue = "0") val restSeconds: Int = 0  // rest after this set; 0 = the default
+    @ColumnInfo(defaultValue = "0") val restSeconds: Int = 0, // rest after this set; 0 = the default
+    @ColumnInfo(defaultValue = "0") val progressStep: Double = 0.0 // weight added next time at 4+ RIR; 0 = no auto-progression
 )
 
 @Entity
@@ -77,7 +78,8 @@ data class WorkoutLog(
     // Snapshot of where this session sat in its program, so history survives program edits
     @ColumnInfo(defaultValue = "") val programName: String = "",
     @ColumnInfo(defaultValue = "0") val week: Int = 0,
-    @ColumnInfo(defaultValue = "") val dayName: String = ""
+    @ColumnInfo(defaultValue = "") val dayName: String = "",
+    @ColumnInfo(defaultValue = "0") val progressed: Boolean = false // maxes already moved by this session's effort
 )
 
 @Entity(
@@ -96,7 +98,7 @@ data class ActualSet(
     val notes: String = "",
     val plannedWeight: Double? = null,                         // what was prescribed when logged
     @ColumnInfo(defaultValue = "") val plannedReps: String = "",
-    val rpe: Double? = null
+    val rir: Double? = null                                   // reps in reserve
 )
 
 /** Every change to a one-rep max, so progress leaves a trail. */
